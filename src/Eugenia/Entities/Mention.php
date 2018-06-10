@@ -18,6 +18,9 @@ class Mention {
     public $from_username;
     public $message;
     public $reply_to_msg_id;
+    public $entities;
+    public $media;
+    public $update_time;
 
     private $db;
 
@@ -84,6 +87,9 @@ class Mention {
         $mention['is_answered'] = $this->is_answered;
         $mention['is_answered_timestamp'] = $this->is_answered_timestamp;
         $mention['reply_to_msg_id'] = $this->reply_to_msg_id;
+        $mention['entities'] = $this->entities;
+        $mention['media'] = $this->media;
+        $mention['update_time'] = $this->update_time;
 
         return $mention;
     }
@@ -96,6 +102,7 @@ class Mention {
         $this->from_username = $mention['from_username'];
         $this->id = $mention['id'];
         $this->message = $mention['message'];
+
         if(isset($mention['is_answered'])) {
             $this->is_answered = $mention['is_answered'];
         }
@@ -103,9 +110,23 @@ class Mention {
         if(isset($mention['is_answered_timestamp'])) {        
             $this->is_answered_timestamp = $mention['is_answered_timestamp'];
         }
-        
+
         if(isset($mention['reply_to_msg_id'])) {        
             $this->reply_to_msg_id = $mention['reply_to_msg_id'];
+        }
+
+        if(isset($mention['entities'])) {        
+            $this->entities = $mention['entities'];
+        }
+
+        if(isset($mention['media'])) {        
+            $this->media = $mention['media'];
+        }
+
+        if(isset($mention['update_time'])) {        
+            $this->update_time = $mention['update_time'];
+        } else {
+            $this->update_time = time();
         }
     }
 
