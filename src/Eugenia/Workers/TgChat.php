@@ -99,6 +99,21 @@
             
         }
 
+        public function getSendMessageUsername($user_id) {
+            $TGClient = $this->api->getTelegramClient();
+
+            $from_user  = $TGClient->get_full_info($user_id);
+
+            $from_username = $from_user['User']['username'];
+            if(strlen($from_username) == 0) {
+                $from_username = "[".$from_user['User']['first_name']."](tg://user?id=".$user_id.")";
+            } else {
+                $from_username = "@".$from_username;
+            }
+
+            return $from_username;
+        }
+
         public function log($message) {
             $this->parent->log("TgChat: " . $message);
         }

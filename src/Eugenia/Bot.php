@@ -157,11 +157,28 @@ class Bot extends Daemon
             }
         }
     }
-
+ 
     public function processCommandMention($command, $mention) {
         $TGClient   = $this->plugin('api')->getTelegramClient();
 
         switch($command['command']) {
+            case 'helpMessage': {
+                $TGClient->messages->sendMessage([
+                    'peer' => $mention['to_id'], 
+                    'parse_mode' => 'Markdown',
+                    'message' => 
+                        "Бот предназначен для оповещения участников чата о неотложных событиях и просьбах помощи." . "\n"  .
+                        "Оповещение может присылаться ботом как в телеграм напрямую в личную беседу, так и через SMS с телефонным звонком." . "\n\n" . 
+                        "Чтобы создать сообщение нужно обратиться к боту через @ с текстом сообщения, которое вы желаете разослать. После этого бот попросит подтверждение, и если вы ему ответите 'да' или '+' - будет создан новый список рассылки вашего сообщения.\n\n" .
+                        "Если вместо 'да' или '+' вы ответите геопозицией (как одиночной, так и лайвом) - это расценится как положительный ответ и геолокация будет добавлена к сообщению. \n\n" .
+                        "Если вы сразу напишете боту геолокацию или аудио вместо сообщения - это будет расценено как суперсрочное сообщение и бот не потребует подтверждения, создав рассылку без него. \n\n" .
+                        "Так же суперсрочным сообщением будет воспринято обращение без текста (ситуация, когда нет времени писать)\n\n" .
+                        "Другие типы медиа в сообщениях (изображения, gif-файлы, видео и пр.) будут проигнорированы."
+                ]);   
+
+                break;             
+            }
+
             case "checkUser": {
                 
                 $peer = [
@@ -272,16 +289,7 @@ class Bot extends Daemon
                         }
                     }
 
-                    $from_user  = $TGClient->get_full_info($mention->from_id);
-
-                    $from_username = $from_user['User']['username'];
-                    if(strlen($from_username) == 0) {
-                        $from_username = "[".$from_user['User']['first_name']."](tg://user?id=".$mention->from_id.")";
-                    } else {
-                        $from_username = "@".$from_username;
-                    }
-
-            
+                    $from_username = $this->Chat->getSendMessageUsername($mention->from_id);            
                     $TGClient->messages->sendMessage([
                         'peer' => (array)$mention->to_id, 
                         'parse_mode' => 'Markdown',
@@ -318,17 +326,9 @@ class Bot extends Daemon
                             $answer = (new Misc\Parser())->checkPositiveAnswer($mention->message);
 
                             if($answer) {
-
-                                $from_user  = $TGClient->get_full_info($mention->from_id);
-
-                                $from_username = $from_user['User']['username'];
-                                if(strlen($from_username) == 0) {
-                                    $from_username = "[".$from_user['User']['first_name']."](tg://user?id=".$mention->from_id.")";
-                                } else {
-                                    $from_username = "@".$from_username;
-                                }
-
                                 // Here we go wit new alert
+
+                                $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
                                 $this->log("Positive answer Detected. Creating new alert.");                                
                                 $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Ок. Создаю рассылку."]);
                                 $alert = Entities\Alert::createFromMention($in_mention, $this->plugin('localdb'));
@@ -336,17 +336,11 @@ class Bot extends Daemon
 
                                 $this->plugin('localdb')->dropNestedVal('mentions', $in_mention->getHash());
                                 $this->plugin('localdb')->dropNestedVal('mentions', $mention->getHash());
+                            } else if($location = (new Misc\Location())->checkLocationMessage($mention)) {
+
+
                             } else {
-
-                                $from_user  = $TGClient->get_full_info($mention->from_id);
-
-                                $from_username = $from_user['User']['username'];
-                                if(strlen($from_username) == 0) {
-                                    $from_username = "[".$from_user['User']['first_name']."](tg://user?id=".$mention->from_id.")";
-                                } else {
-                                    $from_username = "@".$from_username;
-                                }
-
+                                $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
                                 $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Не уверен - не создавай алерты."]);
                                 $this->plugin('localdb')->dropNestedVal('mentions', $in_mention->getHash());
                                 $this->plugin('localdb')->dropNestedVal('mentions', $mention->getHash());
@@ -356,16 +350,13 @@ class Bot extends Daemon
                     }
                     if(!$checkIfAnswer) {
                         if($mention->reply_to_msg_id && $mention->reply_to_msg_id) {
-                            $from_user  = $TGClient->get_full_info($mention->from_id);
+                            $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
 
-                            $from_username = $from_user['User']['username'];
-                            if(strlen($from_username) == 0) {
-                                $from_username = "[".$from_user['User']['first_name']."](tg://user?id=".$mention->from_id.")";
-                            } else {
-                                $from_username = "@".$from_username;
-                            }
-
-                            $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Для создания рассылки напиши мне сообщение напрямую."]);
+                            $TGClient->messages->sendMessage([
+                                'peer' => (array)$mention->to_id, 
+                                'parse_mode' => 'Markdown',
+                                'message' => "" . $from_username . " Для создания рассылки напиши мне сообщение напрямую."
+                            ]);
                             $mention->silentAnswer();
                             $mention->save();
 
