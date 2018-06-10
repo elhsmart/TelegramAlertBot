@@ -2,8 +2,6 @@
 
 namespace Eugenia\Plugins;
 
-require_once(__DIR__ . DIRECTORY_SEPARATR .  ".."  . DIRECTORY_SEPARATOR . "Config.php");
-
 use Lifo\Daemon\Plugin;
 use Lifo\Daemon\Plugin\PluginInterface;
 use danog\MadelineProto\API as MadeApi;
@@ -36,6 +34,8 @@ class Api implements PluginInterface {
     private $nexmo;
 
     public function setup($options = []) {
+        include(__DIR__ . DIRECTORY_SEPARATOR .  ".."  . DIRECTORY_SEPARATOR . "Config.php");
+
         $this->tg_api_id            = $config_tg_api_id;
         $this->tg_api_hash          = $config_tg_api_hash;
         $this->tg_rsa_keys          = $config_tg_rsa_keys;
@@ -43,7 +43,7 @@ class Api implements PluginInterface {
         $this->session_path         = $config_session_path;
 
         $this->twilio_sid           = $config_twilio_sid;
-        $this->twilio_token         = $cobfig_twilio_token;
+        $this->twilio_token         = $config_twilio_token;
 
         $this->nexmo_key            = $config_nexmo_key;
         $this->nexmo_token          = $config_nexmo_token;
