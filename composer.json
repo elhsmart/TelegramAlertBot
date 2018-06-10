@@ -1,0 +1,26 @@
+{
+    "name": "smart/kunabot",
+    "authors": [
+        {
+            "name": "Ed Tretakov",
+            "email": "elhsmart@gmail.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/danog/phpseclib"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "lifo/php-daemon": "dev-master",
+        "ptcong/php-http-class": "3.x-dev",
+        "danog/madelineproto": "dev-master",
+        "twilio/sdk": "dev-master",
+        "nexmo/client": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {"Eugenia": "src/"}
+    }
+}

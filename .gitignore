@@ -1,0 +1,9 @@
+composer.lock
+
+config.json
+localdb.json
+
+/src/Eugenia/Config.php
+/vendor/
+/logs/
+/data/
