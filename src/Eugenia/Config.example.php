@@ -19,3 +19,7 @@ $config_nexmo_key          = "";
 $config_nexmo_token        = "";
 $config_nexmo_answer_url   = "";
 
+$config_bitly_api_key      = "";
+$config_bitly_api_token    = "";
+
+

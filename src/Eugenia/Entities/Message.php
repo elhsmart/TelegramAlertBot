@@ -2,8 +2,6 @@
 
 namespace Eugenia\Entities;
 
-require_once(__DIR__ . DIRECTORY_SEPARATR .  ".."  . DIRECTORY_SEPARATOR . "Config.php");
-
 use Lifo\Daemon\Plugin;
 use Lifo\Daemon\Plugin\PluginInterface;
 use danog\MadelineProto\API as MadeApi;
@@ -11,11 +9,14 @@ use danog\MadelineProto\API as MadeApi;
 class Message {
 
     public $to_id;
+    public $from_id;
+
     public $message;
     public $status;
     public $author_id;
 
     public $is_tg;
+    public $is_geo_tg;
     public $is_sms;
     public $is_call;
 
@@ -27,6 +28,11 @@ class Message {
     public $is_call_capable = false;
 
     public $update_time;
+
+    public $geo_message_id;
+    public $geo_lat;
+    public $geo_lng;
+    public $geo_url;
 
     const STATUS_NEW = 1;
     const STATUS_PROCESSING = 2;
@@ -40,7 +46,7 @@ class Message {
     private $retry_count = 0;
 
     public static function createFromAlert($alert, $db) {
-        $alert = [
+        $message = [
             'to_id' => $alert->to_id,
             'message' => $alert->message,
             'status' =>\Eugenia\Entities\Message::STATUS_NEW,
@@ -54,7 +60,15 @@ class Message {
             'failed' => false
         ];        
 
-        return new self($alert, $db);
+        if($alert->geo_fwd_message_id) {
+            $message['geo_message_id'] = $alert->geo_fwd_message_id;
+            $message['geo_lat'] = $alert->geo_point_lat;
+            $message['geo_lng'] = $alert->geo_point_lng;
+            $message['from_id'] = $alert->from_id;
+            $message['geo_url'] = $alert->geo_url;
+        }
+
+        return new self($message, $db);
     }
 
     public function __construct($message, $db) {
@@ -64,14 +78,16 @@ class Message {
     }
 
     public function process($api) {
+        include(__DIR__ . DIRECTORY_SEPARATOR .  ".."  . DIRECTORY_SEPARATOR . "Config.php");
+
         if($this->viewed || $this->answered || $this->failed) {
             return true;
         }
 
-        // Debug purposes - strict procesing only to particular ser
-        //if($this->to_id->username != 'elhsmart') {
-        //    return false;
-        //}
+        // Debug purposes - strict procesing only to particular user
+        /* if($this->to_id->username != 'elhsmart') {
+            return false;
+        }*/
 
         $TGClient       = $api->getTelegramClient();
         $TWClient       = $api->getTwilioClient();
@@ -94,7 +110,27 @@ class Message {
                 'id' => $this->to_id->user_id
             ];
 
+            if(strlen($message) == 0) {
+                $message = " Пожалуйста просмотрите чат";
+            }
+
             $update = $TGClient->messages->sendMessage(['peer' => $peer, 'message' => "ALERT: " . $message]);    
+
+            if($this->geo_message_id) {
+                $geo_update = $TGClient->messages->forwardMessages([
+                    'peer' => $peer,
+                    'id' => [$this->geo_message_id],
+                    'from_peer' => (array)$this->from_id,
+                    'to_peer' => $peer
+                ]);
+
+                //geo updates is little bit different
+                if($geo_update['_'] == 'updates') {
+                    $geo_update = array_shift($geo_update['updates']);
+                }
+
+                $this->is_geo_tg = $geo_update['id'];
+            }
 
             if($update['_'] == 'updateShortSentMessage' && $update['out'] == true) {
                 $this->is_tg = $update['id'];
@@ -125,10 +161,16 @@ class Message {
                         }
                         $from_phone = $api->getPhoneNumber();
                         
+                        if($this->geo_message_id) {
+                            if(strlen($message) > 0) {
+                                $message .= "\nGeo: " . $this->geo_url;
+                            }
+                        }
+
                         $smsMessage = $TWClient->messages
                             ->create($phone,
                                 array(
-                                    "body" => "ALERT: " . $message . "\n Please visit AutoChat.",
+                                    "body" => "ALERT: " . $message . "\nPlease visit AutoChat.",
                                     "from" => $from_phone
                                 )
                         );
@@ -146,6 +188,7 @@ class Message {
         }
 
         if($this->is_call === null) {
+
             if(time() > $this->update_time + Message::CALL_TIMEOUT) {                
                 $this->update_time = time();
                 $this->save();
@@ -157,7 +200,7 @@ class Message {
                         if(strpos($this->to_id->phone, "+") === false) {
                             $phone = "+" . $this->to_id->phone;
                         }
-                        
+
                         $from_phone =  $api->getNexmoPhoneNumber();
 
                         $call = $NexmoClient->calls()->create([
@@ -207,6 +250,7 @@ class Message {
             'author' => $this->author,
 
             'is_tg' => $this->is_tg,
+            'is_geo_tg' => $this->is_geo_tg,
             'is_sms' => $this->is_sms,
             'is_call' => $this->is_call,
             
@@ -218,7 +262,13 @@ class Message {
 
             'viewed' => $this->viewed,
             'answered' => $this->answered,
-            'failed' => $this->failed
+            'failed' => $this->failed,
+
+            'geo_message_id' => $this->geo_message_id,
+            'geo_lat' => $this->geo_lat,
+            'geo_lng' => $this->geo_lng,
+            'geo_url' => $this->geo_url,
+            'from_id' => $this->from_id
         ];
 
         return $message;
@@ -233,6 +283,10 @@ class Message {
 
         if(isset($message['is_tg'])) {
             $this->is_tg = $message['is_tg'];  
+        }
+
+        if(isset($message['is_geo_tg'])) {
+            $this->is_geo_tg = $message['is_geo_tg'];  
         }
 
         if(isset($message['is_sms'])) {
@@ -269,6 +323,26 @@ class Message {
 
         if(isset($message['failed'])) {
             $this->failed = $message['failed'];
+        }
+
+        if(isset($message['from_id'])) {
+            $this->from_id = $message['from_id'];
+        }
+
+        if(isset($message['geo_message_id'])) {
+            $this->geo_message_id = $message['geo_message_id'];
+        }
+
+        if(isset($message['geo_lat'])) {
+            $this->geo_lat = $message['geo_lat'];
+        }
+
+        if(isset($message['geo_lng'])) {
+            $this->geo_lng = $message['geo_lng'];
+        }
+
+        if(isset($message['geo_url'])) {
+            $this->geo_url = $message['geo_url'];
         }
     }
 

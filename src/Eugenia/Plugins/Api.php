@@ -58,6 +58,8 @@ class Api implements PluginInterface {
     }
 
     public function getNexmoClient() {
+        $this->log('Nexmo client requested.');
+
         $basic  = new \Nexmo\Client\Credentials\Basic($this->nexmo_key, $this->nexmo_token);
         $keypair = new \Nexmo\Client\Credentials\Keypair(file_get_contents(getcwd() . '/data/nexmo_private.key'), 'c957da8b-58f4-4af0-a458-74c941e0cea1');
         $this->nexmo = new \Nexmo\Client(new \Nexmo\Client\Credentials\Container($basic, $keypair));
@@ -66,8 +68,8 @@ class Api implements PluginInterface {
     }
 
     public function getTwilioClient() {
+        $this->log('Twilio client requested.');
         if(!$this->twilio) {
-            var_dump($this->twilio_sid, $this->twilio_token);
             $this->twilio = new Client($this->twilio_sid, $this->twilio_token);            
         }
 

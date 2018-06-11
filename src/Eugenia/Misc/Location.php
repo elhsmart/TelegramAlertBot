@@ -5,8 +5,6 @@ namespace Eugenia\Misc;
 class Location {
 
     public function checkLocationMessage($mention) {
-        var_dump($mention);
-
         if(strlen($mention->message) != 0) {
             return false;
         }
@@ -19,8 +17,7 @@ class Location {
             return false;
         }
 
-
-        die();
+        return true;
     }
 
 }
