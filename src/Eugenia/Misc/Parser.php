@@ -4,48 +4,23 @@ namespace Eugenia\Misc;
 
 class Parser {
 
-    public $dict = [
-        "да",
-        "+",
-        "конечно",
-        "yes",
-        "так",
-        "валяй",
-        "создавай",
-        "вперед",
-        "ага",
-        "ну да",
-        "lf"
-    ];
+    public $dict = [];
 
     public $commandDict = [
-        'checkUser' => [
-            'check',
-            'проверь'
-        ],
-
-        'helpMessage' => [
-            'help',
-            'помощь',
-            'рудз',
-            'gjvjom'
-        ],
-
-        'disableSMS' => [
-            'no sms',
-            'без смс',
-            'не писать',
-            'ns'
-        ],
-
-        'disableCalls' => [
-            'no calls',
-            'без звонка',
-            'без звонков',
-            'не звонить',
-            'nc',
-        ]
+        'checkUser' => [],
+        'helpMessage' => [],
+        'disableSMS' => [],
+        'disableCalls' => []
     ];
+
+    public function __construct() {
+        $this->dict = LangTemplate::getInstance()->get('parser_dict_main');
+
+        $this->commandDict['checkUser'] = LangTemplate::getInstance()->get('parser_dict_check_user');
+        $this->commandDict['helpMessage'] = LangTemplate::getInstance()->get('parser_dict_help_message');
+        $this->commandDict['disableSMS'] = LangTemplate::getInstance()->get('parser_dict_disable_sms');
+        $this->commandDict['disableCalls'] = LangTemplate::getInstance()->get('parser_dict_disable_calls');
+    }
 
     public function checkPositiveAnswer($text) {
 

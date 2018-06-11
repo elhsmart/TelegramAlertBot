@@ -60,7 +60,8 @@ class Mention {
                 $TGClient->messages->sendMessage([
                     'peer' => (array)$this->to_id, 
                     'parse_mode' => 'Markdown',
-                    'message' => "" . $from_username . " от тебя уже есть рассылка. Подожди, пожалуйста, пока она закончмтся"]);
+                    'message' => Misc\LangTemplate::getInstance()->get('mention_alert_already_exist', $from_username)]);
+                    //"" . $from_username . " от тебя уже есть рассылка. Подожди, пожалуйста, пока она закончмтся."]);
                 $this->drop();
                 return false;
             }
@@ -71,7 +72,8 @@ class Mention {
                 $TGClient->messages->sendMessage([
                     'peer' => (array)$this->to_id, 
                     'parse_mode' => 'Markdown',
-                    'message' => "" . $from_username . "Геолокация. Создаю срочный список рассылки."]);
+                    'message' => Misc\LangTemplate::getInstance()->get('mention_empty_message_with_geo', $from_username)]);
+                    //"" . $from_username . "Геолокация. Создаю срочный список рассылки."]);
 
                 $alert = Alert::createFromMention($this, $this->db);
                 $alert->save();
@@ -88,7 +90,8 @@ class Mention {
             $TGClient->messages->sendMessage([
                 'peer' => (array)$this->to_id, 
                 'parse_mode' => 'Markdown',
-                'message' => "" . $from_username . " Пустое сообщение. Создаю срочный список рассылки."]);            
+                'message' => Misc\LangTemplate::getInstance()->get('mention_empty_message', $from_username)]);
+                //"" . $from_username . " Пустое сообщение. Создаю срочный список рассылки."]);            
 
                 $alert = Alert::createFromMention($this, $this->db);
                 $alert->save();
@@ -102,7 +105,7 @@ class Mention {
         $TGClient->messages->sendMessage([
             'peer' => (array)$this->to_id, 
             'parse_mode' => 'Markdown',
-            'message' => "" . $from_username . " уверен?"]);
+            'message' => Misc\LangTemplate::getInstance()->get('mention_are_you_sure', $from_username)]);
 
         $this->is_answered = true;
         $this->is_answered_timestamp = time();

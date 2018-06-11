@@ -10,6 +10,7 @@ class Config implements PluginInterface {
     use \Lifo\Daemon\LogTrait;
 
     private $config_path;
+    private $readonly;
     private $data;
 
     private $file;
@@ -33,6 +34,10 @@ class Config implements PluginInterface {
             $this->error("Error with config file assess. Fallback to defaults: " . $this->config_path);
         }
 
+        if(isset($options['readonly'])) {
+            $this->readonly = $options['readonly'];
+        }
+
         $this->load();
     }
 
@@ -44,9 +49,13 @@ class Config implements PluginInterface {
         $daemon = \Eugenia\Bot::getInstance();
         
         if($daemon->isParent()) {
-            $this->log("Saving config on shutdown.");
-            $this->data->microtime = microtime();
-            $this->save();
+            if($this->readonly) {
+                $this->log("Readonly config. Sorry, no save.");
+            } else {
+                $this->log("Saving config on shutdown.");
+                $this->data->microtime = microtime();
+                $this->save();
+            }
         }
     }
 
@@ -66,7 +75,11 @@ class Config implements PluginInterface {
     }
 
     public function save() {
-        file_put_contents($this->config_path, json_encode($this->data, JSON_PRETTY_PRINT) . "\n");
+        if($this->readonly) {
+            $this->log("Cannot save readonly config.");
+        } else {
+            file_put_contents($this->config_path, json_encode($this->data, JSON_PRETTY_PRINT) . "\n");
+        }
     }    
 
     public function getVal($name) {

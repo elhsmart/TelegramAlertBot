@@ -1,6 +1,7 @@
 <?php
 
 namespace Eugenia\Entities;
+use Eugenia\Misc;
 
 use Lifo\Daemon\Plugin;
 use Lifo\Daemon\Plugin\PluginInterface;
@@ -106,10 +107,13 @@ class Message {
             ];
 
             if(strlen($message) == 0) {
-                $message = " Пожалуйста просмотрите чат";
+                $message = Misc\LangTemplate::getInstance()->get('message_please_review_chat');
+                // " Пожалуйста просмотрите чат";
             }
 
-            $update = $TGClient->messages->sendMessage(['peer' => $peer, 'message' => "ALERT: " . $message]);    
+            $update = $TGClient->messages->sendMessage(['peer' => $peer, 'message' => 
+                Misc\LangTemplate::getInstance()->get('message_alert_prefix', $message)
+            ]);    
 
             if($this->geo_message_id) {
                 $geo_update = $TGClient->messages->forwardMessages([
@@ -166,7 +170,8 @@ class Message {
                         $smsMessage = $TWClient->messages
                             ->create($phone,
                                 array(
-                                    "body" => "ALERT: " . $message . "\nPlease visit AutoChat.",
+                                    "body" => Misc\LangTemplate::getInstance()->get('message_sms_body', $message),
+                                    //"ALERT: " . $message . "\nPlease visit AutoChat.",
                                     "from" => $from_phone
                                 )
                         );
