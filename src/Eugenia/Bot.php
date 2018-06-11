@@ -291,7 +291,6 @@ class Bot extends Daemon
 
             $mentionAuthors = [];
             foreach($mentions as $key => $mention) {
-                var_dump($mention);
                 if(!isset($mentionAuthors[$mention->from_id])) {
                     $mentionAuthors[$mention->from_id] = [];
                 }

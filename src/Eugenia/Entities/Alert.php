@@ -56,15 +56,21 @@ class Alert {
 
                 $UserInfo = $TGClient->get_full_info($user['user']['id']);
                 $me = $TGClient->get_self();
-
-                // drop bot
-                if($UserInfo['User']['self'] == true) {
-                    continue;
-                }                
                 
-                // drop author
-                if($this->author_id == $UserInfo['User']['id']) {
-                    continue;
+                if(getenv('DEBUG') == 'true') {
+                    if($this->author_id != $UserInfo['User']['id']) {
+                        continue;
+                    }
+                } else {
+                    // drop bot
+                    if($UserInfo['User']['self'] == true) {
+                        continue;
+                    }                
+                    
+                    // drop author
+                    if($this->author_id == $UserInfo['User']['id']) {
+                        continue;
+                    }
                 }
                 
                 $bitly = new \Hpatoio\Bitly\Client($api->getBitlyApiToken());
