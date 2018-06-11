@@ -31,25 +31,30 @@ class Api implements PluginInterface {
 
     private $nexmo_key;
     private $nexmo_token;
+    private $nexmo_answer_url;
     private $nexmo;
 
+    private $bitly_api_token;
+    private $bitly;
+
     public function setup($options = []) {
-        include(__DIR__ . DIRECTORY_SEPARATOR .  ".."  . DIRECTORY_SEPARATOR . "Config.php");
+        $this->tg_api_id            = $options['config_tg_api_id'];
+        $this->tg_api_hash          = $options['config_tg_api_hash'];
+        $this->tg_rsa_keys          = $options['config_tg_rsa_keys'];
+        $this->tg_mtproto_server    = $options['config_tg_mtproto_server'];
+        $this->session_path         = $options['config_session_path'];
 
-        $this->tg_api_id            = $config_tg_api_id;
-        $this->tg_api_hash          = $config_tg_api_hash;
-        $this->tg_rsa_keys          = $config_tg_rsa_keys;
-        $this->tg_mtproto_server    = $config_tg_mtproto_server;
-        $this->session_path         = $config_session_path;
+        $this->twilio_sid           = $options['config_twilio_sid'];
+        $this->twilio_token         = $options['config_twilio_token'];
 
-        $this->twilio_sid           = $config_twilio_sid;
-        $this->twilio_token         = $config_twilio_token;
+        $this->nexmo_key            = $options['config_nexmo_key'];
+        $this->nexmo_token          = $options['config_nexmo_token'];
 
-        $this->nexmo_key            = $config_nexmo_key;
-        $this->nexmo_token          = $config_nexmo_token;
+        $this->phone_number         = $options['config_phone_number'];
+        $this->nexmo_phone_number   = $options['config_nexmo_phone_number'];
+        $this->nexmo_answer_url     = $options['config_nexmo_answer_url'];
 
-        $this->phone_number         = $config_phone_number;
-        $this->nexmo_phone_number   = $config_nexmo_phone_number;
+        $this->bitly_api_token      = $options['config_bitly_api_token'];
     }
 
     public function teardown() { 
@@ -119,5 +124,13 @@ class Api implements PluginInterface {
     }
     public function getMTProtoServer() {
         return $this->tg_mtproto_server;
+    }
+
+    public function getNexmoAnswerUrl() {
+        return $this->nexmo_answer_url;
+    }
+
+    public function getBitlyApiToken() {
+        return $this->bitly_api_token;
     }
 }

@@ -78,8 +78,6 @@ class Message {
     }
 
     public function process($api) {
-        include(__DIR__ . DIRECTORY_SEPARATOR .  ".."  . DIRECTORY_SEPARATOR . "Config.php");
-
         if($this->viewed || $this->answered || $this->failed) {
             return true;
         }
@@ -212,7 +210,7 @@ class Message {
                                 'type' => 'phone',
                                 'number' =>  str_replace("+", "", $from_phone)
                             ],
-                            'answer_url' => [$config_nexmo_answer_url]
+                            'answer_url' => [$api->getNexmoAnswerUrl()]
                         ]);
                         $this->is_call = $call->getId();
                         $this->save();
