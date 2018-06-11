@@ -63,37 +63,38 @@ class Parser {
         return false;
     }
 
-    public function checkCommand($mentionMessage, $mention = false) {
+    public function checkCommand($mentionMessage) {
         $resCommand = null;
 
         $command = explode(" ", $mentionMessage);
+        $checkCommand = "";
+        while(count($command) > 0) {
 
-        foreach($this->commandDict as $cmd => $words) {
+            $checkCommand = trim($checkCommand .= " " . array_shift($command));
+
             if($resCommand) {
                 continue;
             }
-            foreach($words as $word) {
+
+            foreach($this->commandDict as $cmd => $words) {
                 if($resCommand) {
                     continue;
                 }
-                
-                if(mb_strpos($command[0], $word) !== false) {
-                    array_shift($command);
-
-                    if(count($command) > 0) {
-                        $resCommand = [
-                            'command' => $cmd,
-                            'entity' => implode(" ", $command)
-                        ];
-                        if($mention) {
-                            $resCommand['mention'] = $mention;
-                        }
-                    } else {
-                        $resCommand = [
-                            'command' => $cmd
-                        ];                        
-                        if($mention) {
-                            $resCommand['mention'] = $mention;
+                foreach($words as $word) {
+                    if($resCommand) {
+                        continue;
+                    }
+                    
+                    if(mb_strpos($checkCommand, $word) !== false) {
+                        if(count($command) > 0) {
+                            $resCommand = [
+                                'command' => $cmd,
+                                'entity' => implode(" ", $command)
+                            ];
+                        } else {
+                            $resCommand = [
+                                'command' => $cmd
+                            ];
                         }
                     }
                 }
