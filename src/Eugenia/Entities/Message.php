@@ -88,9 +88,6 @@ class Message {
         }*/
 
         $TGClient       = $api->getTelegramClient();
-        $TWClient       = $api->getTwilioClient();
-        $NexmoClient    = $api->getNexmoClient();
-
 
         // Send telegram sessage
         if($this->is_tg === null) {
@@ -142,7 +139,7 @@ class Message {
             }
         }
 
-        if($this->is_sms === null) {
+        if($this->is_sms === null && $this->is_sms_capable) {
             $message = $this->message;
 
             if(time() > $this->update_time + Message::SMS_TIMEOUT) {
@@ -165,6 +162,7 @@ class Message {
                             }
                         }
 
+                        $TWClient = $api->getTwilioClient();
                         $smsMessage = $TWClient->messages
                             ->create($phone,
                                 array(
@@ -177,16 +175,12 @@ class Message {
                         $this->save();
                         return false;
 
-                    } else {
-                        $this->failed = true;
-                        $this->save();                    
-                    }
+                    } 
                 }
             }
         }
 
-        if($this->is_call === null) {
-
+        if($this->is_call === null && $this->is_call_capable) {
             if(time() > $this->update_time + Message::CALL_TIMEOUT) {                
                 $this->update_time = time();
                 $this->save();
@@ -201,6 +195,7 @@ class Message {
 
                         $from_phone =  $api->getNexmoPhoneNumber();
 
+                        $NexmoClient = $api->getNexmoClient();
                         $call = $NexmoClient->calls()->create([
                             'to' => [[
                                 'type' => 'phone',
@@ -215,24 +210,28 @@ class Message {
                         $this->is_call = $call->getId();
                         $this->save();
                         return false;
-                    } else {
-                        $this->failed = true;
-                        $this->save();
-                    }
+                    } 
                 }
             }
         }
 
-        if($this->is_tg && $this->is_sms && $this->is_call && $this->viewed === false && $this->answered === false) {
-            if(time() > $this->update_time + Message::CHECK_TIMEOUT) {
-                $this->failed = true;
-                $this->save();            
-            }
-        }     
-        
         if($this->viewed || $this->answered) {
             return true;
         }
+
+        if(
+            ($this->is_tg) &&
+            (($this->is_sms_capable) ? $this->is_sms : true) && 
+            (($this->is_call_capable) ? $this->is_call : true) && 
+            $this->viewed === false && $this->answered === false
+        ) {
+            if(time() > $this->update_time + Message::CHECK_TIMEOUT) {
+                $this->failed = true;
+
+                $this->save();            
+                return false;
+            }
+        }     
     }
 
     public function save() {

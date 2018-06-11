@@ -127,6 +127,7 @@ class Alert {
                 }       
 
                 $exclude_messages[] = $message;
+                $this->save();
                 continue;
             }
 
@@ -140,7 +141,7 @@ class Alert {
                 if($messageObj->is_call) {
                     $this->call_count++;
                 }       
-                
+                $this->save();
                 continue;
             }
 
@@ -158,7 +159,8 @@ class Alert {
 
                 if($messageObj->is_call) {
                     $this->call_count++;
-                }                       
+                }    
+                $this->save();                   
                 continue;
             }
         }
