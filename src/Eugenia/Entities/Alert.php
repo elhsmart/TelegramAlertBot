@@ -65,9 +65,9 @@ class Alert {
                 }                
                 
                 // drop author
-                //if($this->author_id == $UserInfo['User']['id']) {
-                //    continue;
-                //}
+                if($this->author_id == $UserInfo['User']['id']) {
+                    continue;
+                }
                 
                 $bitly = new \Hpatoio\Bitly\Client($config_bitly_api_token);
                 $response = $bitly->shorten(array("longUrl" => 'http://www.google.com/maps/place/'.$this->geo_point_lat.",".$this->geo_point_lng));
