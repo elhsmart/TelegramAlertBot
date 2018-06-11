@@ -22,12 +22,6 @@ class Parser {
         'checkUser' => [
             'check',
             'проверь'
-        ],
-        'helpMessage' => [
-            'help',
-            'помощь',
-            'рудз',
-            'gjvjom'
         ]
     ];
 
@@ -49,29 +43,14 @@ class Parser {
         $resCommand = null;
 
         $command = explode(" ", $mentionMessage);
-        var_dump(1,$command);
         foreach($this->commandDict as $cmd => $words) {
-            if($resCommand) {
-                continue;
-            }
             foreach($words as $word) {
-                if($resCommand) {
-                    continue;
-                }
-                
                 if(mb_strpos($command[0], $word) !== false) {
                     array_shift($command);
-
-                    if(count($command) > 0) {
-                        $resCommand = [
-                            'command' => $cmd,
-                            'entity' => implode(" ", $command)
-                        ];
-                    } else {
-                        $resCommand = [
-                            'command' => $cmd
-                        ];                        
-                    }
+                    $resCommand = [
+                        'command' => $cmd,
+                        'entity' => implode(" ", $command)
+                    ];
                 }
             }
         }

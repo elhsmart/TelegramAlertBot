@@ -112,6 +112,7 @@ class Db implements PluginInterface {
         if(isset($this->data->$section)) {
             unset($this->data->$section->$name);
         }
+
         $this->save();
         $this->load();
     }

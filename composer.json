@@ -18,7 +18,8 @@
         "ptcong/php-http-class": "3.x-dev",
         "danog/madelineproto": "dev-master",
         "twilio/sdk": "dev-master",
-        "nexmo/client": "dev-master"
+        "nexmo/client": "dev-master",
+        "hpatoio/bitly-api": "~2.0"
     },
     "autoload": {
         "psr-0": {"Eugenia": "src/"}
