@@ -19,7 +19,7 @@ class Mention {
     public $message;
     public $reply_to_msg_id;
     public $entities;
-    public $media;
+    public $media = null;
     public $update_time;
 
     private $db;
@@ -58,9 +58,43 @@ class Mention {
                 $TGClient->messages->sendMessage([
                     'peer' => (array)$this->to_id, 
                     'parse_mode' => 'Markdown',
-                    'message' => "" . $from_username . " от тебя уже есть рассылка. Подожди, пожалуйта, ока она закончмтся"]);
+                    'message' => "" . $from_username . " от тебя уже есть рассылка. Подожди, пожалуйста, пока она закончмтся"]);
                 $this->drop();
+                return false;
             }
+        }
+
+        if($this->media != null) {
+            if($this->media->_ == 'messageMediaGeo' || $this->media->_ == 'messageMediaGeoLive') {
+                $TGClient->messages->sendMessage([
+                    'peer' => (array)$this->to_id, 
+                    'parse_mode' => 'Markdown',
+                    'message' => "" . $from_username . "Геолокация. Создаю срочный список рассылки."]);
+
+                $alert = Alert::createFromMention($this, $this->db);
+                $alert->save();
+
+                $this->drop();
+                $this->is_answered = true;
+                $this->is_answered_timestamp = time();
+
+                return false;
+            }
+        }
+
+        if(strlen($this->message) == 0) {
+            $TGClient->messages->sendMessage([
+                'peer' => (array)$this->to_id, 
+                'parse_mode' => 'Markdown',
+                'message' => "" . $from_username . " Пустое сообщение. Создаю срочный список рассылки."]);            
+
+                $alert = Alert::createFromMention($this, $this->db);
+                $alert->save();
+
+                $this->drop();
+                $this->is_answered = true;
+                $this->is_answered_timestamp = time();
+                return false;
         }
 
         $TGClient->messages->sendMessage([
@@ -70,6 +104,7 @@ class Mention {
 
         $this->is_answered = true;
         $this->is_answered_timestamp = time();
+        return true;
     }
 
     public function save() {
@@ -144,6 +179,5 @@ class Mention {
 
     public function drop() {
         $this->db->dropNestedVal('mentions', $this->getHash());
-        $this->db->save();
     }
 }

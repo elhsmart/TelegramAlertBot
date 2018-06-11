@@ -124,7 +124,7 @@ class Bot extends Daemon
                 if($messages) {
                     foreach($messages as $key => $message) {
                         $message = new Entities\Message((array)$message, $this->plugin('localdb'));
-                        if($message->is_tg == $update['update']['max_id']) {
+                        if($update['update']['max_id'] >= $message->is_tg) {
                             $message->viewed = true;
                             $message->save();
                         }
@@ -247,7 +247,7 @@ class Bot extends Daemon
         foreach($alerts as $key => $alert) {
             $alertObj = new Entities\Alert($alert, $this->plugin('localdb'));            
             if($alertObj->process($this->plugin('api'))) {
-                $TGClient->messages->sendMessage(['peer' => (array)$alertObj->to_id, 'message' => "Рассылка завешена. Telegram: ".$alertObj->tg_count.", SMS: ".$alertObj->sms_count.", Звонки: ".$alertObj->call_count.", Не просмотрено: ".$alertObj->fail_count]);                
+                $TGClient->messages->sendMessage(['peer' => (array)$alertObj->to_id, 'message' => "Рассылка завершена. Telegram: ".$alertObj->tg_count.", SMS: ".$alertObj->sms_count.", Звонки: ".$alertObj->call_count.", Не просмотрено: ".$alertObj->fail_count]);                
                 $alertObj->drop();
             }
         }
@@ -297,8 +297,9 @@ class Bot extends Daemon
                 }
             }
 
-            $this->log('Unreaded mentions processing.');        
+            $this->log('Unreaded mentions processing.');
 
+            $this->plugin('localdb')->load();
             $mentions = (array)$this->plugin('localdb')->getVal('mentions');
 
             foreach($mentions as $key => $mention) {
@@ -334,16 +335,26 @@ class Bot extends Daemon
                                 $alert = Entities\Alert::createFromMention($in_mention, $this->plugin('localdb'));
                                 $alert->save();
 
-                                $this->plugin('localdb')->dropNestedVal('mentions', $in_mention->getHash());
-                                $this->plugin('localdb')->dropNestedVal('mentions', $mention->getHash());
+                                $in_mention->drop();
+                                $mention->drop();
                             } else if($location = (new Misc\Location())->checkLocationMessage($mention)) {
+                                $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
+                                $this->log("Positive answer Detected with Geolocation. Creating new alert.");                                
+                                $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Ок. Создаю рассылку. Добавлю к ней геолокацию."]);
+                                $in_mention->media = $mention->media;
+                                $in_mention->media->fwd_message_id = $mention->id;
 
+                                $alert = Entities\Alert::createFromMention($in_mention, $this->plugin('localdb'));
+                                $alert->save();
 
+                                $in_mention->drop();
+                                $mention->drop();
                             } else {
                                 $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
                                 $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Не уверен - не создавай алерты."]);
-                                $this->plugin('localdb')->dropNestedVal('mentions', $in_mention->getHash());
-                                $this->plugin('localdb')->dropNestedVal('mentions', $mention->getHash());
+
+                                $in_mention->drop();
+                                $mention->drop();
                             }
                             $checkIfAnswer = true;
                         }
@@ -361,8 +372,9 @@ class Bot extends Daemon
                             $mention->save();
 
                         } else {
-                            $mention->answer($this->plugin('api'));
-                            $mention->save();
+                            if($mention->answer($this->plugin('api'))) {
+                                $mention->save();
+                            }
                         }
                     }
                 } else {

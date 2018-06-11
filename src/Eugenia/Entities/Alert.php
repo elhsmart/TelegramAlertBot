@@ -20,6 +20,10 @@ class Alert {
     public $call_count;
     public $fail_count;
 
+    public $geo_fwd_message_id;
+    public $geo_point_lat;
+    public $geo_point_lng;
+
     public static function createFromMention($mention, $db) {
         $alert = [
             'to_id' => $mention->to_id,
@@ -30,13 +34,21 @@ class Alert {
 
             'tg_count' => 0,
             'call_count' => 0,
-            'sms_count' => 0
+            'sms_count' => 0,
         ];        
+
+        if($mention->media && ($mention->media->_ == 'messageMediaGeoLive' || $mention->media->_ == 'messageMediaGeo')) {
+            $alert['geo_fwd_message_id'] = $mention->media->fwd_message_id;
+            $alert['geo_point_lat'] = $mention->media->geo->lat;
+            $alert['geo_point_lng'] = $mention->media->geo->long;
+        }
 
         return new self($alert, $db);
     }
 
     public function process($api) {
+        include(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . "Config.php");
+
         $TGClient   = $api->getTelegramClient();
         
         if(empty($this->messages)) {
@@ -53,17 +65,26 @@ class Alert {
                 }                
                 
                 // drop author
-                if($this->author_id == $UserInfo['User']['id']) {
-                    continue;
-                }
+                //if($this->author_id == $UserInfo['User']['id']) {
+                //    continue;
+                //}
+                
+                $bitly = new \Hpatoio\Bitly\Client($config_bitly_api_token);
+                $response = $bitly->shorten(array("longUrl" => 'http://www.google.com/maps/place/'.$this->geo_point_lat.",".$this->geo_point_lng));
                 
                 $alert = $this->serialize();
+                $alert['from_id'] = $this->to_id;
+
                 $alert['to_id'] = [
                     '_' => 'user',
                     'user_id' =>  $UserInfo['User']['id'],
                     'username' => isset($UserInfo['User']['username']) ? $UserInfo['User']['username'] : false,
                     'phone' => isset($UserInfo['User']['phone']) ? $UserInfo['User']['phone'] : false,
                 ];
+
+                if($this->geo_fwd_message_id) {
+                    $alert['geo_url'] = $response['url'];
+                }
 
                 $Message = Message::createFromAlert((object)$alert, $this->db);
 
@@ -173,7 +194,11 @@ class Alert {
 
             'call_count' => $this->call_count,
             'sms_count' => $this->sms_count,
-            'tg_count' => $this->tg_count
+            'tg_count' => $this->tg_count,
+
+            'geo_fwd_message_id' => $this->geo_fwd_message_id,
+            'geo_point_lat' => $this->geo_point_lat,
+            'geo_point_lng' => $this->geo_point_lng
         ];
 
         return $alert;
@@ -199,6 +224,17 @@ class Alert {
         if(isset($alert['tg_count'])) {
             $this->tg_count = $alert['tg_count'];      
         }
+
+        if(isset($alert['geo_fwd_message_id'])) {
+            $this->geo_fwd_message_id = $alert['geo_fwd_message_id'];      
+        }
+        if(isset($alert['geo_point_lat'])) {
+            $this->geo_point_lat = $alert['geo_point_lat'];      
+        }
+        if(isset($alert['geo_point_lng'])) {
+            $this->geo_point_lng = $alert['geo_point_lng'];      
+        }
+
     }
 
     public function getHash() {
