@@ -56,9 +56,31 @@ class Bot extends Daemon
         $this->addPlugin('Eugenia\Plugins\Db', 'localdb', [
             'db_path' => APP_ROOT . DIRECTORY_SEPARATOR . 'localdb.json',
         ]);
-
+        
+        $config = $this->plugin('config');
         $this->addPlugin('Eugenia\Plugins\Api', [
-            'api_key' => 'test',
+            'config_tg_api_id'          => $config->getVal('config_tg_api_id'),
+            'config_tg_api_hash'        => $config->getVal('config_tg_api_hash'),
+
+            'config_phone_number'       => $config->getVal('config_phone_number'),
+            'config_nexmo_phone_number' => $config->getVal('config_nexmo_phone_number'),
+            
+            'config_tg_rsa_keys'        => $config->getVal('config_tg_rsa_keys'),
+            
+            'config_tg_mtproto_server'  => $config->getVal('config_tg_mtproto_server'),
+            
+            'config_session_path'       => $config->getVal('config_session_path'),
+            
+            'config_twilio_sid'         => $config->getVal('config_twilio_sid'),
+            'config_twilio_token'       => $config->getVal('config_twilio_token'),
+            'config_twilio_speech_url'  => $config->getVal('config_twilio_speech_url'),
+            
+            'config_nexmo_key'          => $config->getVal('config_nexmo_key'),
+            'config_nexmo_token'        => $config->getVal('config_nexmo_token'),
+            'config_nexmo_answer_url'   => $config->getVal('config_nexmo_answer_url'),
+            
+            'config_bitly_api_key'      => $config->getVal('config_bitly_api_key'),
+            'config_bitly_api_token'    => $config->getVal('config_bitly_api_token')
         ], 'api');
 
         $this->Tg = new TgConn($this->plugin('api'), $this);

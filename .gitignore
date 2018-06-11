@@ -1,6 +1,7 @@
 composer.lock
 
 config.json
+config.default.json
 localdb.json
 
 /src/Eugenia/Config.php

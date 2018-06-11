@@ -47,8 +47,6 @@ class Alert {
     }
 
     public function process($api) {
-        include(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . "Config.php");
-
         $TGClient   = $api->getTelegramClient();
         
         if(empty($this->messages)) {
@@ -69,7 +67,7 @@ class Alert {
                     continue;
                 }
                 
-                $bitly = new \Hpatoio\Bitly\Client($config_bitly_api_token);
+                $bitly = new \Hpatoio\Bitly\Client($api->getBitlyApiToken());
                 $response = $bitly->shorten(array("longUrl" => 'http://www.google.com/maps/place/'.$this->geo_point_lat.",".$this->geo_point_lng));
                 
                 $alert = $this->serialize();
