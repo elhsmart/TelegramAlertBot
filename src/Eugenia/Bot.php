@@ -37,12 +37,14 @@ class Bot extends Daemon
 
     private $update_offset = 0;
     private $time_frame_data;
+    private $locale;
 
     private $messages = [];
     
     protected function initialize()
     {
         $this->time_start = time();
+
         
         $this->addPlugin('Lifo\Daemon\Plugin\Lock\FileLock', [
             'ttl'  => 10,
@@ -57,7 +59,15 @@ class Bot extends Daemon
             'db_path' => APP_ROOT . DIRECTORY_SEPARATOR . 'localdb.json',
         ]);
         
+        $this->addPlugin('Eugenia\Plugins\Config', 'locale', [
+            'config_path' => APP_ROOT . DIRECTORY_SEPARATOR . 'locale.json',
+            'readonly' => true
+        ]);
+
         $config = $this->plugin('config');
+
+        $this->locale = Misc\LangTemplate::getInstance($this->plugin('config')->getVal('locale'), $this->plugin('locale'));
+
         $this->addPlugin('Eugenia\Plugins\Api', [
             'config_tg_api_id'          => $config->getVal('config_tg_api_id'),
             'config_tg_api_hash'        => $config->getVal('config_tg_api_hash'),
@@ -209,7 +219,8 @@ class Bot extends Daemon
                             'peer' => $mention['to_id'], 
                             'parse_mode' => 'Markdown',
                             'message' => 
-                                $from_username . ", SMS для твоих текущих рассылок выключены."
+                                Misc\LangTemplate::getInstance()->get('bot_sms_disabled', $from_username)
+                                //$from_username . ", SMS для твоих текущих рассылок выключены."
                             ]);
                     }
                 } else {
@@ -217,7 +228,8 @@ class Bot extends Daemon
                         'peer' => $mention['to_id'], 
                         'parse_mode' => 'Markdown',
                         'message' => 
-                            $from_username . ", у тебя нет активных рассылок, чтобы отключать SMS."
+                            Misc\LangTemplate::getInstance()->get('bot_havent_active_alerts_for_sms', $from_username)
+                            //$from_username . ", у тебя нет активных рассылок, чтобы отключать SMS."
                         ]);
                 }
                 break;
@@ -245,7 +257,8 @@ class Bot extends Daemon
                             'peer' => $mention['to_id'], 
                             'parse_mode' => 'Markdown',
                             'message' => 
-                                $from_username . ", звонки для твоих текущих рассылок выключены."
+                                Misc\LangTemplate::getInstance()->get('bot_calls_disabled', $from_username)
+                                //$from_username . ", звонки для твоих текущих рассылок выключены."
                             ]);
                     }
                 } else {
@@ -253,7 +266,8 @@ class Bot extends Daemon
                         'peer' => $mention['to_id'], 
                         'parse_mode' => 'Markdown',
                         'message' => 
-                            $from_username . ", у тебя нет активных рассылок, чтобы отключать звонки."
+                            Misc\LangTemplate::getInstance()->get('bot_havent_active_alerts_for_calls', $from_username)
+                            //$from_username . ", у тебя нет активных рассылок, чтобы отключать звонки."
                         ]);
                 }
                 break;
@@ -262,16 +276,7 @@ class Bot extends Daemon
                 $TGClient->messages->sendMessage([
                     'peer' => $mention['to_id'], 
                     'parse_mode' => 'Markdown',
-                    'message' => 
-                        "Бот предназначен для оповещения участников чата о неотложных событиях и просьбах помощи." . "\n"  .
-                        "Оповещение может присылаться ботом как в телеграм напрямую в личную беседу, так и через SMS с телефонным звонком." . "\n\n" . 
-                        "Чтобы создать сообщение нужно обратиться к боту через @ с текстом сообщения, которое вы желаете разослать. После этого бот попросит подтверждение, и если вы ему ответите 'да' или '+' - будет создан новый список рассылки вашего сообщения.\n\n" .
-                        "Если вместо 'да' или '+' вы ответите геопозицией (как одиночной, так и лайвом) - это расценится как положительный ответ и геолокация будет добавлена к сообщению. \n\n" .
-                        "Если вы сразу напишете боту геолокацию или аудио вместо сообщения - это будет расценено как суперсрочное сообщение и бот не потребует подтверждения, создав рассылку без него. \n\n" .
-                        "Так же суперсрочным сообщением будет воспринято обращение без текста (ситуация, когда нет времени писать)\n\n" .
-                        "Для отключения звонков в процессе обработки cписка рассылки нужно отправить богу команду 'nc' (no calls) или 'не звонить'.\n" .
-                        "То же самое можно сделать для SMS, отправив боту команду 'ns' (no sms) или 'без SMS'.\n\n" .
-                        "Другие типы медиа в сообщениях (изображения, gif-файлы, видео и пр.) будут проигнорированы."
+                    'message' => Misc\LangTemplate::getInstance()->get('bot_help')
                 ]);   
 
                 break;             
@@ -290,23 +295,25 @@ class Bot extends Daemon
                             'peer' => $mention['to_id'], 
                             'parse_mode' => 'Markdown',
                             'message' => 
-                                'Username: ' . ( isset($user['User']['username']) ? $user['User']['username'] : 'Not Set' ) . "\n" . 
-                                'First Name: ' . ( isset($user['User']['first_name']) ? $user['User']['first_name'] : 'Not Set' ) . "\n" . 
-                                'Last Name: ' . ( isset($user['User']['last_name']) ? $user['User']['last_name'] : 'Not Set' ) . "\n" . 
-                                'Phone: '. ( isset($user['User']['phone']) ? $user['User']['phone'] : 'Not Acessible' ) 
+                                'Username: ' . ( isset($user['User']['username']) ? $user['User']['username'] : Misc\LangTemplate::getInstance()->get('bot_not_set') ) . "\n" . 
+                                'First Name: ' . ( isset($user['User']['first_name']) ? $user['User']['first_name'] : Misc\LangTemplate::getInstance()->get('bot_not_set') ) . "\n" . 
+                                'Last Name: ' . ( isset($user['User']['last_name']) ? $user['User']['last_name'] : Misc\LangTemplate::getInstance()->get('bot_not_set') ) . "\n" . 
+                                'Phone: '. ( isset($user['User']['phone']) ? $user['User']['phone'] : Misc\LangTemplate::getInstance()->get('bot_not_accessible') ) 
                             ]);
                     } else {
                         $TGClient->messages->sendMessage([
                             'peer' => $mention['to_id'], 
                             'parse_mode' => 'Markdown',
-                            'message' =>  'Юзера "' . $command['entity'] . '" нету.'
+                            'message' => Misc\LangTemplate::getInstance()->get('bot_username_missed', $command['entity'])
+                            // 'Юзера "' . $command['entity'] . '" нету.'
                         ]);
                     }
                 } catch (\danog\MadelineProto\Exception $e) {
                     $TGClient->messages->sendMessage([
                         'peer' => $mention['to_id'], 
                         'parse_mode' => 'Markdown',
-                        'message' => 'Юзера "' . $command['entity'] . '" нету.'
+                        'message' => Misc\LangTemplate::getInstance()->get('bot_username_missed', $command['entity'])
+                        //'Юзера "' . $command['entity'] . '" нету.'
                     ]);                    
                 }
                 break;
@@ -358,7 +365,11 @@ class Bot extends Daemon
         foreach($alerts as $key => $alert) {
             $alertObj = new Entities\Alert($alert, $this->plugin('localdb'));            
             if($alertObj->process($this->plugin('api'))) {
-                $TGClient->messages->sendMessage(['peer' => (array)$alertObj->to_id, 'message' => "Рассылка завершена. Telegram: ".$alertObj->tg_count.", SMS: ".$alertObj->sms_count.", Звонки: ".$alertObj->call_count.", Не просмотрено: ".$alertObj->fail_count]);                
+                $TGClient->messages->sendMessage([
+                    'peer' => (array)$alertObj->to_id, 
+                    'message' => Misc\LangTemplate::getInstance()->get('bot_alert_ended_report', $alertObj->tg_count, $alertObj->sms_count, $alertObj->call_count, $alertObj->fail_count)
+                    //"Рассылка завершена. Telegram: ".$alertObj->tg_count.", SMS: ".$alertObj->sms_count.", Звонки: ".$alertObj->call_count.", Не просмотрено: ".$alertObj->fail_count
+                ]);                
                 $alertObj->drop();
             }
         }
@@ -414,7 +425,9 @@ class Bot extends Daemon
                     $TGClient->messages->sendMessage([
                         'peer' => (array)$mention->to_id, 
                         'parse_mode' => 'Markdown',
-                        'message' => "" . $from_username . " Извини, могу ответить только на последнее сообщение c текстом '" . $mentionObj->message . "' . Уверен?"]);
+                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', $from_username, $mentionObj->message)
+                    ]);
+                    //"" . $from_username . " Извини, могу ответить только на последнее сообщение c текстом '" . $mentionObj->message . "' . Уверен?"]);
                 }
             }
 
@@ -452,16 +465,28 @@ class Bot extends Daemon
 
                                 $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
                                 $this->log("Positive answer Detected. Creating new alert.");                                
-                                $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Ок. Создаю рассылку."]);
+                                $TGClient->messages->sendMessage([
+                                    'peer' => (array)$mention->to_id, 
+                                    'message' => Misc\LangTemplate::getInstance()->get('bot_creating_alert', $from_username)
+                                    //"" . $from_username . " Ок. Создаю рассылку."
+                                ]);
+
                                 $alert = Entities\Alert::createFromMention($in_mention, $this->plugin('localdb'));
                                 $alert->save();
 
                                 $in_mention->drop();
                                 $mention->drop();
+
                             } else if($location = (new Misc\Location())->checkLocationMessage($mention)) {
                                 $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
                                 $this->log("Positive answer Detected with Geolocation. Creating new alert.");                                
-                                $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Ок. Создаю рассылку. Добавлю к ней геолокацию."]);
+                                $TGClient->messages->sendMessage([
+                                    'peer' => (array)$mention->to_id, 
+                                    'message' => 
+                                    Misc\LangTemplate::getInstance()->get('bot_creating_alert_with_geo', $from_username)
+                                    //"" . $from_username . " Ок. Создаю рассылку. Добавлю к ней геолокацию."
+                                ]);
+
                                 $in_mention->media = $mention->media;
                                 $in_mention->media->fwd_message_id = $mention->id;
 
@@ -472,7 +497,11 @@ class Bot extends Daemon
                                 $mention->drop();
                             } else {
                                 $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
-                                $TGClient->messages->sendMessage(['peer' => (array)$mention->to_id, 'message' => "" . $from_username . " Не уверен - не создавай алерты."]);
+                                $TGClient->messages->sendMessage([
+                                    'peer' => (array)$mention->to_id, 
+                                    'message' =>  Misc\LangTemplate::getInstance()->get('bot_rejecting_alert', $from_username)
+                                    //"" . $from_username . " Не уверен - не создавай алерты."
+                                ]);
 
                                 $in_mention->drop();
                                 $mention->drop();
@@ -487,7 +516,8 @@ class Bot extends Daemon
                             $TGClient->messages->sendMessage([
                                 'peer' => (array)$mention->to_id, 
                                 'parse_mode' => 'Markdown',
-                                'message' => "" . $from_username . " Для создания рассылки напиши мне сообщение напрямую."
+                                'message' =>  Misc\LangTemplate::getInstance()->get('bot_rejecting_reply_alert', $from_username)
+                                //"" . $from_username . " Для создания рассылки напиши мне сообщение напрямую."
                             ]);
                             //$mention->drop();
 

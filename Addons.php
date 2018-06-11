@@ -46,3 +46,25 @@ function mb_substr_replace($string, $replacement, $start, $length=NULL) {
 function mb_trim($string, $trim_chars = '\s'){
     return preg_replace('/^['.$trim_chars.']*(?U)(.*)['.$trim_chars.']*$/u', '\\1',$string);
 }
+
+function mb_vsprintf($format, $argv) {
+    $newargv = array() ;
+    
+    preg_match_all("`\%('.+|[0 ]|)([1-9][0-9]*|)s`U", $format, $results, PREG_SET_ORDER) ;
+    
+    foreach($results as $result) {
+        list($string_format, $filler, $size) = $result ;
+        if(strlen($filler)>1)
+            $filler = substr($filler, 1) ;
+        while(!is_string($arg = array_shift($argv)))
+            $newargv[] = $arg ;
+        $pos = strpos($format, $string_format) ;
+        $format = substr($format, 0, $pos)
+                  . ($size ? str_repeat($filler, $size-strlen($arg)) : '')
+                    . str_replace('%', '%%', $arg)
+                    . substr($format, $pos+strlen($string_format))
+                    ;
+    }
+        
+    return vsprintf($format, $newargv) ;
+}

@@ -1,6 +1,7 @@
 <?php
 
     namespace Eugenia\Workers;
+    use Eugenia\Misc;
 
     use Lifo\Daemon\LogTrait;
     use Lifo\Daemon\Promise;
@@ -61,7 +62,10 @@
                         'id' => $admin['User']['id']
                     ];
 
-                    $TGClient->messages->sendMessage(['peer' => $peer, 'message' => "I'm back online <3"]);
+                    $TGClient->messages->sendMessage([
+                        'peer' => $peer, 
+                        'message' => Misc\LangTemplate::getInstance()->get('conn_going_online')
+                    ]);
                     return true;
                 }
 
@@ -75,7 +79,10 @@
                         'id' => $admin['User']['id']
                     ];
 
-                    $TGClient->messages->sendMessage(['peer' => $peer, 'message' => "Just logged in. Will stay online."]);
+                    $TGClient->messages->sendMessage([
+                        'peer' => $peer, 
+                        'message' => Misc\LangTemplate::getInstance()->get('conn_logged_in')
+                    ]);
                     return true;
                 }
 
@@ -159,6 +166,9 @@
                 'id' => $admin['User']['id']
             ];
     
-            $TGClient->messages->sendMessage(['peer' => $peer, 'message' => "Going offline."]);      
+            $TGClient->messages->sendMessage([
+                'peer' => $peer, 
+                'message' => Misc\LangTemplate::getInstance()->get('conn_going_offline')
+            ]);      
         }
     }
