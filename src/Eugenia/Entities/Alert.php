@@ -24,6 +24,8 @@ class Alert {
     public $geo_point_lat;
     public $geo_point_lng;
 
+    public $time_update; 
+
     public static function createFromMention($mention, $db) {
         $alert = [
             'to_id' => $mention->to_id,
@@ -35,6 +37,8 @@ class Alert {
             'tg_count' => 0,
             'call_count' => 0,
             'sms_count' => 0,
+
+            'time_update' => time()
         ];        
 
         if($mention->media && ($mention->media->_ == 'messageMediaGeoLive' || $mention->media->_ == 'messageMediaGeo')) {
@@ -184,6 +188,7 @@ class Alert {
     }
 
     public function save() {
+        $this->time_update = time();
         $this->db->setNestedVal('alerts', $this->getHash(), $this->serialize());
     }
 
@@ -202,7 +207,8 @@ class Alert {
 
             'geo_fwd_message_id' => $this->geo_fwd_message_id,
             'geo_point_lat' => $this->geo_point_lat,
-            'geo_point_lng' => $this->geo_point_lng
+            'geo_point_lng' => $this->geo_point_lng,
+            'time_update' => $this->time_update
         ];
 
         return $alert;
@@ -237,6 +243,9 @@ class Alert {
         }
         if(isset($alert['geo_point_lng'])) {
             $this->geo_point_lng = $alert['geo_point_lng'];      
+        }
+        if(isset($alert['time_update'])) {
+            $this->time_update = $alert['time_update'];      
         }
 
     }

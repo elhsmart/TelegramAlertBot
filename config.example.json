@@ -3,6 +3,8 @@
     "users": {
         "admin": "elhsmart"
     },
+    "alerts_cleanup_timeout":"180",
+    "mentions_cleanup_timeout": "120",
     "config_tg_api_id" :"",
     "config_tg_api_hash" :"",
     "config_phone_number" :"",

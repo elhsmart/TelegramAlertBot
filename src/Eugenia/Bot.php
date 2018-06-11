@@ -269,6 +269,8 @@ class Bot extends Daemon
                         "Если вместо 'да' или '+' вы ответите геопозицией (как одиночной, так и лайвом) - это расценится как положительный ответ и геолокация будет добавлена к сообщению. \n\n" .
                         "Если вы сразу напишете боту геолокацию или аудио вместо сообщения - это будет расценено как суперсрочное сообщение и бот не потребует подтверждения, создав рассылку без него. \n\n" .
                         "Так же суперсрочным сообщением будет воспринято обращение без текста (ситуация, когда нет времени писать)\n\n" .
+                        "Для отключения звонков в процессе обработки cписка рассылки нужно отправить богу команду 'nc' (no calls) или 'не звонить'.\n" .
+                        "То же самое можно сделать для SMS, отправив боту команду 'ns' (no sms) или 'без SMS'.\n\n" .
                         "Другие типы медиа в сообщениях (изображения, gif-файлы, видео и пр.) будут проигнорированы."
                 ]);   
 
@@ -321,7 +323,21 @@ class Bot extends Daemon
 
         $alerts = (array)$this->plugin('localdb')->getVal('alerts');
         foreach($alerts as $key => $alert) {
-            $alertObj = new Entities\Alert($alert, $this->plugin('localdb'));            
+            $alertObj = new Entities\Alert($alert, $this->plugin('localdb'));       
+            
+            // Alerts cleanup
+            if(time() > $alertObj->time_update + $this->plugin('config')->getVal('alerts_cleanup_timeout')) {
+                $this->log('Stalled alert found. Cleanup.');
+
+                foreach($alertObj->messages as $key => $messageHash) {
+                    $message =  (array)$this->plugin('localdb')->getNestedVal('messages', $messageHash);
+                    $messageObj = new Entities\Message($message, $this->plugin('localdb'));      
+                    $messageObj->drop();
+                }
+
+                $alertObj->drop();
+                continue;
+            }
             
             foreach($alertObj->messages as $key => $messageHash) {
                 $message =  (array)$this->plugin('localdb')->getNestedVal('messages', $messageHash);
@@ -356,6 +372,16 @@ class Bot extends Daemon
         }
 
         $mentions = (array)$this->plugin('localdb')->getVal('mentions');
+
+        //Check stalled mentions
+        foreach($mentions as $key => $mention) {
+            $mentionObj = new Entities\Mention($mention, $this->plugin('localdb'));
+            if(time() > $mentionObj->update_time + $this->plugin('config')->getVal('mentions_cleanup_timeout')) {
+                $this->log('Stalled mention found. Cleaning');
+                unset($mentions[$key]);
+                $mentionObj->drop();
+            }
+        }
 
         if(is_array($mentions) && count($mentions) > 0) {
             $this->log('Check duplicate mentions.');        
