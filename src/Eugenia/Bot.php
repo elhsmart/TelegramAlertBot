@@ -186,6 +186,78 @@ class Bot extends Daemon
         $TGClient   = $this->plugin('api')->getTelegramClient();
 
         switch($command['command']) {
+            case 'disableSMS': {
+                $alerts = $messages = $this->plugin('localdb')->getVal('alerts');
+                $userAlerts = [];
+                foreach($alerts as $key => $alert) {
+                    if($alert->author_id == $mention['author']['id']) {
+                        $userAlerts[] = $alert;
+                    }
+                }
+                
+                $from_username = $this->Chat->getSendMessageUsername($mention['author']);            
+
+                if(count($userAlerts) > 0) {
+                    foreach($userAlerts as $key => $alert) {
+                        foreach($alert->messages as $mes_key => $hash) {
+                            $message = $this->plugin('localdb')->getNestedVal('messages', $hash);
+                            $message->is_sms_capable = false;
+                            $this->plugin('localdb')->setNestedVal('messages', $hash, $message);
+                        }
+
+                        $TGClient->messages->sendMessage([
+                            'peer' => $mention['to_id'], 
+                            'parse_mode' => 'Markdown',
+                            'message' => 
+                                $from_username . ", SMS для твоих текущих рассылок выключены."
+                            ]);
+                    }
+                } else {
+                    $TGClient->messages->sendMessage([
+                        'peer' => $mention['to_id'], 
+                        'parse_mode' => 'Markdown',
+                        'message' => 
+                            $from_username . ", у тебя нет активных рассылок, чтобы отключать SMS."
+                        ]);
+                }
+                break;
+            }
+            case 'disableCalls': {
+                $alerts = $messages = $this->plugin('localdb')->getVal('alerts');
+                $userAlerts = [];
+                foreach($alerts as $key => $alert) {
+                    if($alert->author_id == $mention['author']['id']) {
+                        $userAlerts[] = $alert;
+                    }
+                }
+                
+                $from_username = $this->Chat->getSendMessageUsername($mention['author']);            
+
+                if(count($userAlerts) > 0) {
+                    foreach($userAlerts as $key => $alert) {
+                        foreach($alert->messages as $mes_key => $hash) {
+                            $message = $this->plugin('localdb')->getNestedVal('messages', $hash);
+                            $message->is_call_capable = false;
+                            $this->plugin('localdb')->setNestedVal('messages', $hash, $message);
+                        }
+
+                        $TGClient->messages->sendMessage([
+                            'peer' => $mention['to_id'], 
+                            'parse_mode' => 'Markdown',
+                            'message' => 
+                                $from_username . ", звонки для твоих текущих рассылок выключены."
+                            ]);
+                    }
+                } else {
+                    $TGClient->messages->sendMessage([
+                        'peer' => $mention['to_id'], 
+                        'parse_mode' => 'Markdown',
+                        'message' => 
+                            $from_username . ", у тебя нет активных рассылок, чтобы отключать звонки."
+                        ]);
+                }
+                break;
+            }
             case 'helpMessage': {
                 $TGClient->messages->sendMessage([
                     'peer' => $mention['to_id'], 
@@ -204,7 +276,6 @@ class Bot extends Daemon
             }
 
             case "checkUser": {
-                
                 $peer = [
                     '_' => 'user',
                     'id' => $command['entity']

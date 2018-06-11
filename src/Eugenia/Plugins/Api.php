@@ -104,7 +104,6 @@ class Api implements PluginInterface {
                     'cache_all_peers_on_startup' => true
                 ]
             ];
-
             $this->madeline = new MadeApi($this->session_path, $settings);
         } 
 
