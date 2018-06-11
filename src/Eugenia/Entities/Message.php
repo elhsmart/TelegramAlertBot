@@ -85,9 +85,9 @@ class Message {
         }
 
         // Debug purposes - strict procesing only to particular user
-        if($this->to_id->username != 'elhsmart') {
+        /* if($this->to_id->username != 'elhsmart') {
             return false;
-        }
+        }*/
 
         $TGClient       = $api->getTelegramClient();
         $TWClient       = $api->getTwilioClient();
@@ -186,9 +186,6 @@ class Message {
                 }
             }
         }
-
-        //DEBUG
-        return;
 
         if($this->is_call === null) {
 
