@@ -1,6 +1,7 @@
 <?php
 
 namespace Eugenia\Entities;
+use Eugenia\Misc;
 
 use Lifo\Daemon\Plugin;
 use Lifo\Daemon\Plugin\PluginInterface;
@@ -55,6 +56,7 @@ class Mention {
         
         foreach($alerts as $key => $alert) {
             if($alert->author_id == $this->from_id) {
+
                 $TGClient->messages->sendMessage([
                     'peer' => (array)$this->to_id, 
                     'parse_mode' => 'Markdown',

@@ -38,7 +38,7 @@ class Message {
     const STATUS_PROCESSING = 2;
     const RETRY_COUNT = 2;
 
-    const SMS_TIMEOUT = 15;
+    const SMS_TIMEOUT = 180;
     const CALL_TIMEOUT = 180;
     const CHECK_TIMEOUT = 180;
 

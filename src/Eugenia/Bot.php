@@ -29,6 +29,9 @@ class Bot extends Daemon
         ],
         15 => [
             'getUpdates'
+        ],
+        30 => [
+            'dataCleanup'
         ]
     ];
 
@@ -143,7 +146,6 @@ class Bot extends Daemon
 
             if($mentions && count($mentions) > 0) {
                 foreach($mentions as $mention) {
-                    
                     $command = (new Misc\Parser())->checkCommand($mention['message']);
 
                     if($command) {
@@ -267,6 +269,7 @@ class Bot extends Daemon
 
             $mentionAuthors = [];
             foreach($mentions as $key => $mention) {
+                var_dump($mention);
                 if(!isset($mentionAuthors[$mention->from_id])) {
                     $mentionAuthors[$mention->from_id] = [];
                 }
@@ -368,6 +371,8 @@ class Bot extends Daemon
                                 'parse_mode' => 'Markdown',
                                 'message' => "" . $from_username . " Для создания рассылки напиши мне сообщение напрямую."
                             ]);
+                            //$mention->drop();
+
                             $mention->silentAnswer();
                             $mention->save();
 
@@ -382,6 +387,10 @@ class Bot extends Daemon
                 }
             }
         }
+    }
+
+    public function dataCleanup() {
+        
     }
 
     protected function onInit() {
