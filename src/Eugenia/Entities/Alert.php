@@ -101,6 +101,15 @@ class Alert {
                     $Message->is_call_capable = true;
                 }
 
+                $settings = Entities\Settings::getAndCheck($alert['to_id']['user_id'], $this->db);
+                
+                if(!$settings->sms_enabled) {
+                    $Message->is_sms_capable = false;
+                }
+                if(!$settings->calls_enabled) {
+                    $Message->is_call_capable = false;
+                }
+
                 $Message->save();
 
                 $this->messages[] = $Message->getHash();

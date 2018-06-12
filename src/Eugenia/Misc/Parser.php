@@ -10,7 +10,10 @@ class Parser {
         'checkUser' => [],
         'helpMessage' => [],
         'disableSMS' => [],
-        'disableCalls' => []
+        'disableCalls' => [],
+        'enableSMS' => [],
+        'enableCalls' => [],
+        'reviewSettings' => []
     ];
 
     public function __construct() {
@@ -20,6 +23,9 @@ class Parser {
         $this->commandDict['helpMessage'] = LangTemplate::getInstance()->get('parser_dict_help_message');
         $this->commandDict['disableSMS'] = LangTemplate::getInstance()->get('parser_dict_disable_sms');
         $this->commandDict['disableCalls'] = LangTemplate::getInstance()->get('parser_dict_disable_calls');
+        $this->commandDict['enableSMS'] = LangTemplate::getInstance()->get('parser_dict_enable_sms');
+        $this->commandDict['enableCalls'] = LangTemplate::getInstance()->get('parser_dict_enable_calls');
+        $this->commandDict['reviewSettings'] =  LangTemplate::getInstance()->get('parser_dict_review_settings');
     }
 
     public function checkPositiveAnswer($text) {

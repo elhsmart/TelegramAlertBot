@@ -35,7 +35,23 @@
 
         "bot_not_set": "не задано",
         "bot_bot_accessible": "недоступно",
+
+        "bot_settings_not_applicable" : [
+            "Настройки:\n\n",
+            "Звонки: недоступны\n",
+            "SMS: недоступны"
+        ],
         
+        "bot_settings": [
+            "Настройки:\n\n",
+            "Звонки: %s\n",
+            "SMS: %s"
+        ],
+        "bot_settings_sms_disabled": "SMS отключены",
+        "bot_settings_sms_enabled": "SMS включены",
+        "bot_settings_calls_disabled": "Звонки отключены",
+        "bot_settings_calls_enabled": "Звонки включены",
+
         "conn_going_offline": "Ушла в оффлайн.",
         "conn_going_online": "Снова в сети <3",
         "conn_logged_in": "Залогинилась. Останусь онлайн.",
@@ -57,12 +73,24 @@
             "2": "не писать",
             "3": "ns"
         },
+        "parser_dict_enable_sms": {
+            "0": "sms",
+            "1": "писать"
+        },
         "parser_dict_disable_calls": {
             "0": "no calls",
             "1": "без звонка",
             "2": "без звонков",
             "3": "не звонить",
             "4": "nc"
+        },
+        "parser_dict_enable_calls": {
+            "0": "calls",
+            "1": "звонить"
+        },
+        "parser_dict_review_settings": {
+            "0": "settings",
+            "1": "настройки"
         },
         "parser_dict_main": {
             "0": "да",
