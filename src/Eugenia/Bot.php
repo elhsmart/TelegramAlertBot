@@ -107,12 +107,21 @@ class Bot extends Daemon
             
             $this->log('Dropping startup updates');
             $TGClient = $this->plugin('api')->getTelegramClient();
-            $updates = $TGClient->get_updates(['offset' => $this->update_offset, 'limit' => 50, 'timeout' => 0]);
-            
-            // This is shit, but the fastest way to get last update
-            foreach($updates as $key => $update) {
-                $this->update_offset = $update['update_id'] + 1;
+
+            $continueGetUpdates = true;
+            do {
+                $updates = $TGClient->get_updates(['offset' => $this->update_offset, 'limit' => 50, 'timeout' => 0]);
+                
+                // This is shit, but the fastest way to get last update
+                foreach($updates as $key => $update) {
+                    $this->update_offset = $update['update_id'] + 1;
+                }
+                if(count($updates) < 50) {
+                    $continueGetUpdates = false;
+                }
             }
+            
+            while($continueGetUpdates);
 
             $this->onInit();
         });
