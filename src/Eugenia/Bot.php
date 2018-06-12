@@ -110,7 +110,7 @@ class Bot extends Daemon
 
             $continueGetUpdates = true;
             do {
-                $updates = $TGClient->get_updates(['offset' => $this->update_offset, 'limit' => 50, 'timeout' => 0]);
+                $updates = $TGClient->get_updates(['offset' => $this->update_offset, 'limit' => 50, 'timeout' => 10]);
                 
                 // This is shit, but the fastest way to get last update
                 foreach($updates as $key => $update) {
@@ -120,7 +120,6 @@ class Bot extends Daemon
                     $continueGetUpdates = false;
                 }
             }
-            
             while($continueGetUpdates);
 
             $this->onInit();
@@ -440,7 +439,7 @@ class Bot extends Daemon
 
             if($mentions && count($mentions) > 0) {
                 foreach($mentions as $mention) {
-                    $command = (new Misc\Parser())->checkCommand($mention['message']);
+                    $command = (new Misc\Parser())->checkCommand($mention['message'], $mention);
 
                     if($command) {
                         $this->processCommandMention($command, $mention);
@@ -549,10 +548,17 @@ class Bot extends Daemon
                     '_' => 'user',
                     'id' => $command['entity']
                 ];
-                try {
-                    $user = $TGClient->get_full_info($peer);
 
-                    if($user['User'] && $user['User']['_']) {
+                if($command['entity'] == 'channel') {
+                    $peer = [
+                        '_' => 'peerChannel',
+                        'channel_id' => $command['from']['to_id']['channel_id']
+                    ];
+                }
+                try {                
+                    $user = $TGClient->get_full_info($peer);
+                    
+                    if(isset($user['User']) && $user['User']['_']) {
                         $TGClient->messages->sendMessage([
                             'peer' => $mention['to_id'], 
                             'parse_mode' => 'Markdown',
@@ -561,6 +567,14 @@ class Bot extends Daemon
                                 'First Name: ' . ( isset($user['User']['first_name']) ? $user['User']['first_name'] : Misc\LangTemplate::getInstance()->get('bot_not_set') ) . "\n" . 
                                 'Last Name: ' . ( isset($user['User']['last_name']) ? $user['User']['last_name'] : Misc\LangTemplate::getInstance()->get('bot_not_set') ) . "\n" . 
                                 'Phone: '. ( isset($user['User']['phone']) ? $user['User']['phone'] : Misc\LangTemplate::getInstance()->get('bot_not_accessible') ) 
+                            ]);
+                    } else if(isset($user['Chat']) &&  $user['Chat']['_']) {
+                        $TGClient->messages->sendMessage([
+                            'peer' => $mention['to_id'], 
+                            'parse_mode' => 'Markdown',
+                            'message' => 
+                                'Id: ' . $user['Chat']['id'] . "\n" . 
+                                'Name: ' . $user['Chat']['title'] . "\n"
                             ]);
                     } else {
                         $TGClient->messages->sendMessage([
@@ -577,6 +591,7 @@ class Bot extends Daemon
                         'message' => Misc\LangTemplate::getInstance()->get('bot_username_missed', $command['entity'])
                         //'Юзера "' . $command['entity'] . '" нету.'
                     ]);                    
+                    var_dump($e->getMessage());
                 }
                 break;
             }

@@ -42,7 +42,7 @@ class Parser {
         return false;
     }
 
-    public function checkCommand($mentionMessage) {
+    public function checkCommand($mentionMessage, $source = null) {
         $resCommand = null;
 
         $command = explode(" ", $mentionMessage);
@@ -68,7 +68,8 @@ class Parser {
                         if(count($command) > 0) {
                             $resCommand = [
                                 'command' => $cmd,
-                                'entity' => implode(" ", $command)
+                                'entity' => implode(" ", $command),
+                                'from' => $source
                             ];
                         } else {
                             $resCommand = [

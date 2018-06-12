@@ -25,7 +25,7 @@
         "bot_havent_active_alerts_for_sms": "%s, у тебя нет активных рассылок, чтобы отключать SMS.",
         "bot_calls_disabled": "%s, звонки для твоих текущих рассылок выключены.",
         "bot_havent_active_alerts_for_calls": "%s, у тебя нет активных рассылок, чтобы отключать звонки.",
-        "bot_username_missed" : "'Юзера %s нет в контактах.'",
+        "bot_username_missed" : "Юзера %s нет в контактах.",
         "bot_alert_ended_report" : "Рассылка завершена. Telegram: %s, SMS: %s, Звонки: %s, Не просмотрено: %s",
         "bot_only_last_mention_applicable" : "%s извини, могу ответить только на последнее сообщение c текстом '%s' . Уверен?",
         "bot_creating_alert" : "%s Ок. Создаю рассылку.",
