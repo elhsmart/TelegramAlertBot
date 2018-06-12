@@ -18,7 +18,7 @@ class Location {
                 return false;
             }            
         } else if(is_object($mention)) {
-            if(strlen((object)$mention->message) != 0) {
+            if(strlen($mention->message) != 0) {
                 return false;
             }
 

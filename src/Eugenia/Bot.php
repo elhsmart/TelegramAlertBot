@@ -557,7 +557,7 @@ class Bot extends Daemon
                 }
                 try {                
                     $user = $TGClient->get_full_info($peer);
-                    
+
                     if(isset($user['User']) && $user['User']['_']) {
                         $TGClient->messages->sendMessage([
                             'peer' => $mention['to_id'], 
@@ -702,7 +702,7 @@ class Bot extends Daemon
                     $TGClient->messages->sendMessage([
                         'peer' => (array)$mention->to_id, 
                         'parse_mode' => 'Markdown',
-                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', [$from_username, $mentionObj->message])
+                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', $from_username, $mentionObj->message)
                     ]);
                     //"" . $from_username . " Извини, могу ответить только на последнее сообщение c текстом '" . $mentionObj->message . "' . Уверен?"]);
                 }
@@ -744,6 +744,7 @@ class Bot extends Daemon
                                 $this->log("Positive answer Detected. Creating new alert.");                                
                                 $TGClient->messages->sendMessage([
                                     'peer' => (array)$mention->to_id, 
+                                    'parse_mode' => 'Markdown',
                                     'message' => Misc\LangTemplate::getInstance()->get('bot_creating_alert', $from_username)
                                     //"" . $from_username . " Ок. Создаю рассылку."
                                 ]);
@@ -759,6 +760,7 @@ class Bot extends Daemon
                                 $this->log("Positive answer Detected with Geolocation. Creating new alert.");                                
                                 $TGClient->messages->sendMessage([
                                     'peer' => (array)$mention->to_id, 
+                                    'parse_mode' => 'Markdown',
                                     'message' => 
                                     Misc\LangTemplate::getInstance()->get('bot_creating_alert_with_geo', $from_username)
                                     //"" . $from_username . " Ок. Создаю рассылку. Добавлю к ней геолокацию."
@@ -776,6 +778,7 @@ class Bot extends Daemon
                                 $from_username = $this->Chat->getSendMessageUsername($mention->from_id);
                                 $TGClient->messages->sendMessage([
                                     'peer' => (array)$mention->to_id, 
+                                    'parse_mode' => 'Markdown',
                                     'message' =>  Misc\LangTemplate::getInstance()->get('bot_rejecting_alert', $from_username)
                                     //"" . $from_username . " Не уверен - не создавай алерты."
                                 ]);
