@@ -45,7 +45,8 @@ class Bot extends Daemon
     {
         $this->time_start = time();
 
-        
+
+
         $this->addPlugin('Lifo\Daemon\Plugin\Lock\FileLock', [
             'ttl'  => 10,
             'file' => '/tmp/quick_start_daemon.pid',
@@ -154,6 +155,14 @@ class Bot extends Daemon
 
         $updates    = $TGClient->get_updates(['offset' => $this->update_offset, 'limit' => 50, 'timeout' => 0]);
         foreach($updates as $key => $update) {
+
+            if($update['update']['_'] == 'updateNewMessage') {
+                // Mark message as read
+                $TGClient->messages->readHistory(['peer' => $update['update']['message']['from_id'], 'max_id' => $update['update_id'] ]);
+
+                $this->processDirectMessage($update);
+            }
+
             if($update['update']['_'] == 'updateReadHistoryOutbox') {
                 $messages = $this->plugin('localdb')->getVal('messages');
                 if($messages) {
@@ -167,7 +176,133 @@ class Bot extends Daemon
                 }
             }
             
-            $this->update_offset = $update['update_id'];
+            $this->update_offset = $update['update_id'] + 1;
+        }
+    }
+
+    public function processDirectMessage($update) {
+        $TGClient = $this->plugin('api')->getTelegramClient();
+        $me = $this->Chat->getSelf();
+        $message = $update['update']['message'];
+        if($message['to_id']['user_id'] == $me['id']) {
+            // Processing audio message
+            if( (new Misc\Media())->checkMediaAudio($message) ) {
+                // Here we will go with processing Audio
+                
+            }
+
+            if( (new Misc\Media())->checkMediaVideo($message) ) {
+                // Here we will go with processing Audio
+                
+            }
+
+            // Check commands messages
+            $authorPeer = [
+                '_' => 'user',
+                'id' => $message['from_id']
+            ];
+
+            $user = $TGClient->get_full_info($authorPeer);
+            $authorPeer['phone'] = $user['User']['phone'];
+
+            $settingsCommands = [
+                'disableSMS',
+                'enableSMS',
+                'disableCalls',
+                'enableCalls',
+                'reviewSettings'
+            ];
+            $checkSettingsCommand = true;
+
+            if(strlen($message['message']) > 0) {
+                $command = (new Misc\Parser())->checkCommand($message['message']);
+                if($command) {
+                    if(in_array($command['command'], $settingsCommands)) {
+                        if(!$authorPeer['phone']) {
+                            $TGClient->messages->sendMessage([
+                                'peer' => $authorPeer, 
+                                'parse_mode' => 'Markdown',
+                                'message' => 
+                                    Misc\LangTemplate::getInstance()->get('bot_settings_not_applicable')
+                            ]);       
+                            $checkSettingsCommand = false;
+                        }                             
+                    }
+                    if($checkSettingsCommand) {
+                        switch($command['command']) {
+                            case 'disableSMS': {
+                                $userSettings = Entities\Settings::getAndCheck($authorPeer['id'], $this->plugin('localdb'), false, true);
+                                $userSettings->sms_enabled = false;
+                                $userSettings->save();
+
+                                $TGClient->messages->sendMessage([
+                                    'peer' => $authorPeer, 
+                                    'parse_mode' => 'Markdown',
+                                    'message' => 
+                                        Misc\LangTemplate::getInstance()->get('bot_settings_sms_disabled')
+                                ]);    
+                                break;
+                            }
+                            case 'enableSMS': {
+                                $userSettings = Entities\Settings::getAndCheck($authorPeer['id'], $this->plugin('localdb'), true, true);
+                                $userSettings->sms_enabled = true;
+                                $userSettings->save();
+
+                                $TGClient->messages->sendMessage([
+                                    'peer' => $authorPeer, 
+                                    'parse_mode' => 'Markdown',
+                                    'message' => 
+                                        Misc\LangTemplate::getInstance()->get('bot_settings_sms_enabled')
+                                ]);   
+                                break;
+                            }
+                            case 'disableCalls': {
+                                $userSettings = Entities\Settings::getAndCheck($authorPeer['id'], $this->plugin('localdb'), true, false);
+                                $userSettings->calls_enabled = false;
+                                $userSettings->save();
+
+                                $TGClient->messages->sendMessage([
+                                    'peer' => $authorPeer, 
+                                    'parse_mode' => 'Markdown',
+                                    'message' => 
+                                        Misc\LangTemplate::getInstance()->get('bot_settings_calls_disabled')
+                                ]);                                
+                                break;
+                            }
+                            case 'enableCalls': {
+                                $userSettings = Entities\Settings::getAndCheck($authorPeer['id'], $this->plugin('localdb'), true, true);
+                                $userSettings->calls_enabled = true;
+                                $userSettings->save();
+
+                                $TGClient->messages->sendMessage([
+                                    'peer' => $authorPeer, 
+                                    'parse_mode' => 'Markdown',
+                                    'message' => 
+                                        Misc\LangTemplate::getInstance()->get('bot_settings_calls_enabled')
+                                ]);                                
+                                break;
+                            }
+                            case 'reviewSettings': {
+                                $userSettings = Entities\Settings::getAndCheck($authorPeer['id'], $this->plugin('localdb'), false, false);
+
+                                $TGClient->messages->sendMessage([
+                                    'peer' => $authorPeer, 
+                                    'parse_mode' => 'Markdown',
+                                    'message' => 
+                                        Misc\LangTemplate::getInstance()->get('bot_settings', 
+                                        ($userSettings->calls_enabled) ? 'On' : 'Off',
+                                        ($userSettings->sms_enabled) ? 'On' : 'Off'
+                                    )
+                                ]);                                        
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //var_dump($update['update']['message']);
+            // Check media
         }
     }
 
@@ -367,7 +502,7 @@ class Bot extends Daemon
             if($alertObj->process($this->plugin('api'))) {
                 $TGClient->messages->sendMessage([
                     'peer' => (array)$alertObj->to_id, 
-                    'message' => Misc\LangTemplate::getInstance()->get('bot_alert_ended_report', $alertObj->tg_count, $alertObj->sms_count, $alertObj->call_count, $alertObj->fail_count)
+                    'message' => Misc\LangTemplate::getInstance()->get('bot_alert_ended_report', (string)$alertObj->tg_count, (string)$alertObj->sms_count, (string)$alertObj->call_count, (string)$alertObj->fail_count)
                     //"Рассылка завершена. Telegram: ".$alertObj->tg_count.", SMS: ".$alertObj->sms_count.", Звонки: ".$alertObj->call_count.", Не просмотрено: ".$alertObj->fail_count
                 ]);                
                 $alertObj->drop();
@@ -425,7 +560,7 @@ class Bot extends Daemon
                     $TGClient->messages->sendMessage([
                         'peer' => (array)$mention->to_id, 
                         'parse_mode' => 'Markdown',
-                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', $from_username, $mentionObj->message)
+                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', [$from_username, $mentionObj->message])
                     ]);
                     //"" . $from_username . " Извини, могу ответить только на последнее сообщение c текстом '" . $mentionObj->message . "' . Уверен?"]);
                 }

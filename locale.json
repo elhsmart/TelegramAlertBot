@@ -3,7 +3,7 @@
         "mention_are_you_sure": "%s уверен?",
         "mention_empty_message": "%s, пустое сообщение. Создаю срочный список рассылки.",
         "mention_empty_message_with_geo": "%s, геолокация. Создаю срочный список рассылки.",
-        "mention_alert_already_exist": "%s, от тебя уже есть рассылка. Подожди, пожалуйста, пока она закончмтся.",
+        "mention_alert_already_exist": "%s, от тебя уже есть рассылка. Подожди, пожалуйста, пока она закончится.",
 
         "message_please_review_chat": " пожалуйста просмотрите АвтоЧат.",
         "message_alert_prefix": "ALERT: %s",
@@ -26,7 +26,7 @@
         "bot_calls_disabled": "%s, звонки для твоих текущих рассылок выключены.",
         "bot_havent_active_alerts_for_calls": "%s, у тебя нет активных рассылок, чтобы отключать звонки.",
         "bot_username_missed" : "'Юзера %s нет в контактах.'",
-        "bot_alert_ended_report" : "Рассылка завершена. Telegram: %d, SMS: %d, Звонки: %d, Не просмотрено: %d",
+        "bot_alert_ended_report" : "Рассылка завершена. Telegram: %s, SMS: %s, Звонки: %s, Не просмотрено: %s",
         "bot_only_last_mention_applicable" : "%s извини, могу ответить только на последнее сообщение c текстом '%s' . Уверен?",
         "bot_creating_alert" : "%s Ок. Создаю рассылку.",
         "bot_creating_alert_with_geo" : "%s Ок. Создаю рассылку. Добавлю к ней геолокацию.",
@@ -35,7 +35,23 @@
 
         "bot_not_set": "не задано",
         "bot_bot_accessible": "недоступно",
+
+        "bot_settings_not_applicable" : [
+            "Настройки:\n\n",
+            "Звонки: недоступны\n",
+            "SMS: недоступны"
+        ],
         
+        "bot_settings": [
+            "Настройки:\n\n",
+            "Звонки: %s\n",
+            "SMS: %s"
+        ],
+        "bot_settings_sms_disabled": "SMS отключены",
+        "bot_settings_sms_enabled": "SMS включены",
+        "bot_settings_calls_disabled": "Звонки отключены",
+        "bot_settings_calls_enabled": "Звонки включены",
+
         "conn_going_offline": "Ушла в оффлайн.",
         "conn_going_online": "Снова в сети <3",
         "conn_logged_in": "Залогинилась. Останусь онлайн.",
@@ -57,12 +73,24 @@
             "2": "не писать",
             "3": "ns"
         },
+        "parser_dict_enable_sms": {
+            "0": "sms",
+            "1": "писать"
+        },
         "parser_dict_disable_calls": {
             "0": "no calls",
             "1": "без звонка",
             "2": "без звонков",
             "3": "не звонить",
             "4": "nc"
+        },
+        "parser_dict_enable_calls": {
+            "0": "calls",
+            "1": "звонить"
+        },
+        "parser_dict_review_settings": {
+            "0": "settings",
+            "1": "настройки"
         },
         "parser_dict_main": {
             "0": "да",

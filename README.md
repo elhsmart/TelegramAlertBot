@@ -16,6 +16,27 @@ Debug launch command: `DEBUG=true php Daemon.php`
 
 6. Simple multilanguage implemented.
 
+## User settings
+
+Simple user settings can be defined with direct messages to bot.
+
+Available commands:
+
+`settings` - review current settings, will return status of false possilibity to send sms and call. Otherwise will show status of current settings.
+
+`sms` - command to enable SMS messaging from bot.
+
+`no sms` - command to disable SMS messaging from bot.
+
+`calls` - command to enable direct phone calls from bot.
+
+`no calls` - command to disable direct phone calls from bot.
+
+> NOTE! SMS / Calls is unaccessible while bot phone number is not in your phone contact list (exactly phone contacts, not telegram).
+> To receive SMS and Calls please add bot number to your phone contacts, this will made your phone number available to bot.
+
+> NOTE! SMS / Calls settings is on by default.
+
 ## Multi language support
 
 Different locales with string text templates can be defined in "locale.json" configuration file. You can find it in root tree of repo.
