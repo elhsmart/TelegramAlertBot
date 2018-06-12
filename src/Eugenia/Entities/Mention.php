@@ -44,7 +44,8 @@ class Mention {
         $TGClient   = $api->getTelegramClient();
         $from_user  = $TGClient->get_full_info($this->from_id);
 
-        $from_username = $from_user['User']['username'];
+        $from_username = isset($from_user['User']['username']) ? $from_user['User']['username'] : '';
+        
         if(strlen($from_username) == 0) {
             $from_username = "[".$from_user['User']['first_name']."](tg://user?id=".$this->from_id.")";
         } else {
