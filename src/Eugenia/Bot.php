@@ -188,12 +188,15 @@ class Bot extends Daemon
             // Processing audio message
             if( (new Misc\Media())->checkMediaAudio($message) ) {
                 // Here we will go with processing Audio
+                
             }
 
             if( (new Misc\Media())->checkMediaVideo($message) ) {
                 // Here we will go with processing Audio
+                
             }
 
+            // Check commands messages
             $authorPeer = [
                 '_' => 'user',
                 'id' => $message['from_id']
