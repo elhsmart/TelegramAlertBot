@@ -70,9 +70,11 @@
                             }
                         }
 
-                        $this->log('Get new mention from ' . $mention_author['username'] .  ': ' . $mentionMessage['message'] . ' .');
+                        $au_username = $this->getSendMessageUsername($user['id']);
+
+                        $this->log('Get new mention from ' . $au_username .  ': ' . $mentionMessage['message'] . ' .');
                         $mentionMessage['author'] = $mention_author;
-                        $mentionMessage['from_username'] = $mention_author['username'];
+                        $mentionMessage['from_username'] = $au_username ;
 
                         if(isset($mentionMessage['entities']) && isset($mentionMessage['entities'][0])) {
                             $mentionMessage['message'] = trim(mb_substr_replace($mentionMessage['message'], '', $mentionMessage['entities'][0]['offset'], $mentionMessage['entities'][0]['length']));
