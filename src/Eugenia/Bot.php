@@ -103,6 +103,17 @@ class Bot extends Daemon
         //$this->addWorker(new TgConn( $this->plugin('api')), 'Tg');
 
         $this->on(DaemonEvent::ON_INIT, function() {
+            // Dropping updates before start
+            
+            $this->log('Dropping startup updates');
+            $TGClient = $this->plugin('api')->getTelegramClient();
+            $updates = $TGClient->get_updates(['offset' => $this->update_offset, 'limit' => 50, 'timeout' => 0]);
+            
+            // This is shit, but the fastest way to get last update
+            foreach($updates as $key => $update) {
+                $this->update_offset = $update['update_id'] + 1;
+            }
+
             $this->onInit();
         });
         // when the daemon goes into shutdown mode, call our function so your daemon can clean itself up.
@@ -163,6 +174,13 @@ class Bot extends Daemon
                 $this->processDirectMessage($update);
             }
 
+            if($update['update']['_'] == 'updateNewChannelMessage') {
+                // Mark message as read
+                $TGClient->messages->readHistory(['peer' => $update['update']['message']['from_id'], 'max_id' => $update['update_id'] ]);
+
+                $this->processDirectChannelMessage($update);
+            }            
+
             if($update['update']['_'] == 'updateReadHistoryOutbox') {
                 $messages = $this->plugin('localdb')->getVal('messages');
                 if($messages) {
@@ -180,27 +198,127 @@ class Bot extends Daemon
         }
     }
 
+    public function processDirectChannelMessage($update) {
+        return;
+    }
+
+    public function processForwardWithCreate($type, $params) {
+        $TGClient = $this->plugin('api')->getTelegramClient();
+
+        $me = $params['me'];
+        $authorPeer = $params['authorPeer'];
+        $message = $params['message'];
+
+        if(!$this->plugin('config')->getVal('preferred_channel')) {
+            throw new \Exception('Please define preferred chat in config');
+        }
+
+        $channelPeer = [
+            '_' => "peerChannel", 
+            "channel_id" => $this->plugin('config')->getVal('preferred_channel')
+        ];
+
+        $mentionUpdate = $TGClient->messages->sendMessage([
+            'peer' => $authorPeer, 
+            'parse_mode' => 'Markdown',
+            'message' => 
+                Misc\LangTemplate::getInstance()->get('bot_direct_'.$type.'_message_alert_creation')
+        ]);      
+        
+        $fw_update = null;
+        $update = $TGClient->messages->forwardMessages([
+            'peer' => $authorPeer,
+            'id' => [$message['id']],
+            'from_peer' => $me,
+            'to_peer' => $channelPeer
+        ]);              
+        
+        if(is_array($update['updates'])) {
+            foreach($update['updates'] as $key => $upd) {
+                if($upd['_'] == 'updateNewChannelMessage') {
+                    if($upd['message']['from_id'] == $me['id']) {
+                        $fw_update = $upd;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $from_username = $this->Chat->getSendMessageUsername($authorPeer['id']);
+
+        $TGClient->messages->sendMessage([
+            'peer' => $channelPeer, 
+            'message' => Misc\LangTemplate::getInstance()->get('bot_'.$type.'_to_chat_forward', $from_username)
+            //"" . $from_username . " Ок. Создаю рассылку."
+        ]);
+
+        $mock = [
+            'to_id' => $channelPeer,
+            'message' => null,
+            'author' => $from_username,
+            'author_id' => $authorPeer['id'],
+            'mention_id' => $mentionUpdate['id'],
+        ];
+
+        if($fw_update) {
+            // 'audio_fwd_message_id' => $update['_']['id']
+            $mock[$type.'_fwd_message_id'] = $fw_update['message']['id'];
+            if($type == "geo") {
+                $mock['geo_point_lat'] = $fw_update['message']['media']['geo']['lat'];
+                $mock['geo_point_lng'] = $fw_update['message']['media']['geo']['long'];
+            }
+        }
+
+        $alert = Entities\Alert::createFromMock($mock, $this->plugin('localdb'));
+        $alert->save();  
+    }
+
     public function processDirectMessage($update) {
         $TGClient = $this->plugin('api')->getTelegramClient();
         $me = $this->Chat->getSelf();
         $message = $update['update']['message'];
+
+        $authorPeer = [
+            '_' => 'user',
+            'id' => $message['from_id']
+        ];
+
         if($message['to_id']['user_id'] == $me['id']) {
             // Processing audio message
+            
+            if( (new Misc\Media())->checkMediaLocation($message) ) {
+                $this->processForwardWithCreate('geo', [
+                    'me' => $me,
+                    'message' => $message,
+                    'authorPeer' => $authorPeer
+                ]);
+
+                return;
+            }
+
             if( (new Misc\Media())->checkMediaAudio($message) ) {
+
+                $this->processForwardWithCreate('audio', [
+                    'me' => $me,
+                    'message' => $message,
+                    'authorPeer' => $authorPeer
+                ]);
                 // Here we will go with processing Audio
-                
+                return;
             }
 
             if( (new Misc\Media())->checkMediaVideo($message) ) {
+
+                $this->processForwardWithCreate('video', [
+                    'me' => $me,
+                    'message' => $message,
+                    'authorPeer' => $authorPeer
+                ]);
                 // Here we will go with processing Audio
-                
+                return;
             }
 
             // Check commands messages
-            $authorPeer = [
-                '_' => 'user',
-                'id' => $message['from_id']
-            ];
 
             $user = $TGClient->get_full_info($authorPeer);
             $authorPeer['phone'] = $user['User']['phone'];

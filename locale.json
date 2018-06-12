@@ -32,6 +32,12 @@
         "bot_creating_alert_with_geo" : "%s Ок. Создаю рассылку. Добавлю к ней геолокацию.",
         "bot_rejecting_alert" : "%s Не уверен - не создавай алерты.",
         "bot_rejecting_reply_alert": "%s для создания рассылки напиши мне сообщение напрямую.",
+        "bot_direct_audio_message_alert_creation" : "Создаю срочную рассылку с аудио в чат.",
+        "bot_direct_video_message_alert_creation" : "Создаю срочную рассылку с видео в чат.",
+        "bot_direct_geo_message_alert_creation" : "Создаю срочную рассылку с геолокацией в чат.",
+        "bot_audio_to_chat_forward": "У %s проблемы. Пожалуйста прослушайте запись. Создаю рассылку с аудио.",
+        "bot_video_to_chat_forward": "У %s проблемы. Пожалуйста просмотрите ролик. Создаю рассылку с видео.",
+        "bot_geo_to_chat_forward": "У %s проблемы. Пожалуйста просмотрите геоточку. Создаю рассылку с локацией.",
 
         "bot_not_set": "не задано",
         "bot_bot_accessible": "недоступно",

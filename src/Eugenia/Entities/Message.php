@@ -18,6 +18,8 @@ class Message {
 
     public $is_tg;
     public $is_geo_tg;
+    public $is_audio_tg;
+    public $is_video_tg;
     public $is_sms;
     public $is_call;
 
@@ -31,6 +33,9 @@ class Message {
     public $update_time;
 
     public $geo_message_id;
+    public $audio_message_id;
+    public $video_message_id;
+
     public $geo_lat;
     public $geo_lng;
     public $geo_url;
@@ -61,7 +66,17 @@ class Message {
             'failed' => false
         ];        
 
-        if($alert->geo_fwd_message_id) {
+        if(isset($alert->audio_fwd_message_id)) {
+            $message['audio_message_id'] = $alert->audio_fwd_message_id;
+            $message['from_id'] = $alert->from_id;
+        }
+
+        if(isset($alert->video_fwd_message_id)) {
+            $message['video_message_id'] = $alert->video_fwd_message_id;
+            $message['from_id'] = $alert->from_id;            
+        }
+
+        if(isset($alert->geo_fwd_message_id)) {
             $message['geo_message_id'] = $alert->geo_fwd_message_id;
             $message['geo_lat'] = $alert->geo_point_lat;
             $message['geo_lng'] = $alert->geo_point_lng;
@@ -130,6 +145,41 @@ class Message {
 
                 $this->is_geo_tg = $geo_update['id'];
             }
+
+            if($this->audio_message_id) {
+                $messageTpl = [
+                    'peer' => $peer,
+                    'id' => [$this->audio_message_id],
+                    'from_peer' => (array)$this->from_id,
+                    'to_peer' => $peer
+                ];
+
+                var_dump($messageTpl);
+                $audio_update = $TGClient->messages->forwardMessages($messageTpl);
+
+                //geo updates is little bit different
+                if($audio_update['_'] == 'updates') {
+                    $audio_update = array_shift($audio_update['updates']);
+                }
+
+                $this->is_audio_tg = $audio_update['id'];
+            }   
+            
+            if($this->video_message_id) {
+                $video_update = $TGClient->messages->forwardMessages([
+                    'peer' => $peer,
+                    'id' => [$this->video_message_id],
+                    'from_peer' => (array)$this->from_id,
+                    'to_peer' => $peer
+                ]);
+
+                //geo updates is little bit different
+                if($video_update['_'] == 'updates') {
+                    $video_update = array_shift($video_update['updates']);
+                }
+
+                $this->is_video_tg = $video_update['id'];
+            }                 
 
             if($update['_'] == 'updateShortSentMessage' && $update['out'] == true) {
                 $this->is_tg = $update['id'];
@@ -253,6 +303,8 @@ class Message {
 
             'is_tg' => $this->is_tg,
             'is_geo_tg' => $this->is_geo_tg,
+            'is_audio_tg' => $this->is_audio_tg,
+            'is_video_tg' => $this->is_video_tg,
             'is_sms' => $this->is_sms,
             'is_call' => $this->is_call,
             
@@ -267,6 +319,9 @@ class Message {
             'failed' => $this->failed,
 
             'geo_message_id' => $this->geo_message_id,
+            'audio_message_id' => $this->audio_message_id,
+            'video_message_id' => $this->video_message_id,
+
             'geo_lat' => $this->geo_lat,
             'geo_lng' => $this->geo_lng,
             'geo_url' => $this->geo_url,
@@ -289,6 +344,14 @@ class Message {
 
         if(isset($message['is_geo_tg'])) {
             $this->is_geo_tg = $message['is_geo_tg'];  
+        }
+
+        if(isset($message['is_audio_tg'])) {
+            $this->is_audi_tg = $message['is_audio_tg'];  
+        }
+
+        if(isset($message['is_video_tg'])) {
+            $this->is_video_tg = $message['is_video_tg'];  
         }
 
         if(isset($message['is_sms'])) {
@@ -333,6 +396,14 @@ class Message {
 
         if(isset($message['geo_message_id'])) {
             $this->geo_message_id = $message['geo_message_id'];
+        }
+
+        if(isset($message['audio_message_id'])) {
+            $this->audio_message_id = $message['audio_message_id'];
+        }
+
+        if(isset($message['video_message_id'])) {
+            $this->video_message_id = $message['video_message_id'];
         }
 
         if(isset($message['geo_lat'])) {
