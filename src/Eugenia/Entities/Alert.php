@@ -15,10 +15,10 @@ class Alert {
     public $mention_id;
     public $messages = [];
 
-    public $tg_count;
-    public $sms_count;
-    public $call_count;
-    public $fail_count;
+    public $tg_count = 0;
+    public $sms_count = 0;
+    public $call_count = 0;
+    public $fail_count = 0;
 
     public $geo_fwd_message_id;
     public $geo_point_lat;
@@ -101,8 +101,8 @@ class Alert {
                     $Message->is_call_capable = true;
                 }
 
-                $settings = Entities\Settings::getAndCheck($alert['to_id']['user_id'], $this->db);
-                
+                $settings = Settings::getAndCheck($alert['to_id']['user_id'], $this->db);
+
                 if(!$settings->sms_enabled) {
                     $Message->is_sms_capable = false;
                 }

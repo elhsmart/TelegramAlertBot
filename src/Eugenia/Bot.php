@@ -45,7 +45,8 @@ class Bot extends Daemon
     {
         $this->time_start = time();
 
-        
+
+
         $this->addPlugin('Lifo\Daemon\Plugin\Lock\FileLock', [
             'ttl'  => 10,
             'file' => '/tmp/quick_start_daemon.pid',
@@ -498,7 +499,7 @@ class Bot extends Daemon
             if($alertObj->process($this->plugin('api'))) {
                 $TGClient->messages->sendMessage([
                     'peer' => (array)$alertObj->to_id, 
-                    'message' => Misc\LangTemplate::getInstance()->get('bot_alert_ended_report', $alertObj->tg_count, $alertObj->sms_count, $alertObj->call_count, $alertObj->fail_count)
+                    'message' => Misc\LangTemplate::getInstance()->get('bot_alert_ended_report', (string)$alertObj->tg_count, (string)$alertObj->sms_count, (string)$alertObj->call_count, (string)$alertObj->fail_count)
                     //"Рассылка завершена. Telegram: ".$alertObj->tg_count.", SMS: ".$alertObj->sms_count.", Звонки: ".$alertObj->call_count.", Не просмотрено: ".$alertObj->fail_count
                 ]);                
                 $alertObj->drop();
@@ -556,7 +557,7 @@ class Bot extends Daemon
                     $TGClient->messages->sendMessage([
                         'peer' => (array)$mention->to_id, 
                         'parse_mode' => 'Markdown',
-                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', $from_username, $mentionObj->message)
+                        'message' => Misc\LangTemplate::getInstance()->get('bot_only_last_mention_applicable', [$from_username, $mentionObj->message])
                     ]);
                     //"" . $from_username . " Извини, могу ответить только на последнее сообщение c текстом '" . $mentionObj->message . "' . Уверен?"]);
                 }
