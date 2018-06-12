@@ -20,16 +20,52 @@ class Alert {
     public $call_count = 0;
     public $fail_count = 0;
 
+    public $audio_fwd_message_id;
+    public $video_fwd_message_id;
+
     public $geo_fwd_message_id;
     public $geo_point_lat;
     public $geo_point_lng;
 
     public $time_update; 
 
+    public static function createFromMock($mock, $db) {
+        $alert = [
+            'to_id' => $mock['to_id'],
+            'message' => $mock['message'],
+            'author' => $mock['author'],
+            'author_id' => $mock['author_id'],
+            'mention_id' => $mock['mention_id'],
+
+            'tg_count' => 0,
+            'call_count' => 0,
+            'sms_count' => 0,
+            'fail_count' => 0,
+
+            'time_update' => time()
+        ];  
+
+        if(isset($mock['audio_fwd_message_id'])) {
+            $alert['audio_fwd_message_id'] = $mock['audio_fwd_message_id'];
+        }
+
+        if(isset($mock['video_fwd_message_id'])) {
+            $alert['video_fwd_message_id'] = $mock['video_fwd_message_id'];
+        }
+
+        if(isset($mock['geo_fwd_message_id'])) {
+            $alert['geo_fwd_message_id'] = $mock['geo_fwd_message_id'];
+            $alert['geo_point_lat'] = $mock['geo_point_lat'];
+            $alert['geo_point_lng'] = $mock['geo_point_lng'];
+        }
+
+        return new self($alert, $db);
+    }
+
     public static function createFromMention($mention, $db) {
         $alert = [
             'to_id' => $mention->to_id,
-            'message' => str_replace('Eugenia ', '', $mention->message),
+            'message' => $mention->message,
             'author' => $mention->from_username,
             'author_id' => $mention->from_id,
             'mention_id' => $mention->id,
@@ -37,6 +73,7 @@ class Alert {
             'tg_count' => 0,
             'call_count' => 0,
             'sms_count' => 0,
+            'fail_count' => 0,
 
             'time_update' => time()
         ];        
@@ -217,6 +254,8 @@ class Alert {
             'tg_count' => $this->tg_count,
 
             'geo_fwd_message_id' => $this->geo_fwd_message_id,
+            'audio_fwd_message_id' => $this->audio_fwd_message_id,
+            'video_fwd_message_id' => $this->video_fwd_message_id,
             'geo_point_lat' => $this->geo_point_lat,
             'geo_point_lng' => $this->geo_point_lng,
             'time_update' => $this->time_update
@@ -249,6 +288,15 @@ class Alert {
         if(isset($alert['geo_fwd_message_id'])) {
             $this->geo_fwd_message_id = $alert['geo_fwd_message_id'];      
         }
+
+        if(isset($alert['audio_fwd_message_id'])) {
+            $this->audio_fwd_message_id = $alert['audio_fwd_message_id'];      
+        }
+
+        if(isset($alert['video_fwd_message_id'])) {
+            $this->video_fwd_message_id = $alert['video_fwd_message_id'];      
+        }
+
         if(isset($alert['geo_point_lat'])) {
             $this->geo_point_lat = $alert['geo_point_lat'];      
         }

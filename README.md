@@ -16,6 +16,14 @@ Debug launch command: `DEBUG=true php Daemon.php`
 
 6. Simple multilanguage implemented.
 
+## Urgent alerts in dialogs and preferred chat
+
+Sometimes situation can happen when you will not be able to type message, but instead can dictate something, send location or video message. for this purposes bot supports direct messages with Audio / Video / Location types, which will be converted
+directly to urgent alert, message with media will be fowarded to preferred chat and messaging will be started.
+
+You need to define `{"preferred_channel":"<int_id>"}` property in config.json file to send urgent alerts only to your most valuable
+chat. As soon as boot can support many chats - urgeng messages from dialogs with bot will be sended only to preffered, or not sended at all if preferred chat is not set.
+
 ## User settings
 
 Simple user settings can be defined with direct messages to bot.
